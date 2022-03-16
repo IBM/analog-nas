@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 
+import operator
+import functools
+
 class ResidualBranch(nn.Module):
     def __init__(self, in_channels, out_channels, filter_size, stride, branch_index):
         super(ResidualBranch, self).__init__()
@@ -34,7 +37,6 @@ class ResidualBranch(nn.Module):
 
     def forward(self, x):
         return self.residual_branch(x)
-    
 class SkipConnection(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
         super(SkipConnection, self).__init__()
@@ -104,7 +106,7 @@ class ResidualGroup(nn.Module):
                                     n_output_plane,
                                     filter_size,
                                     res_branches,
-                                    stride=stride))
+                                    stride=1))
 
         # The following residual block do not perform any downsampling (stride=1)
         for block_index in range(2, n_blocks + 1):
@@ -162,7 +164,8 @@ class Network(nn.Module):
         
         self.model = nn.Sequential()
         block = BasicBlock
-        self.model.add_module('Conv_0',
+        self.blocks = nn.Sequential()
+        self.blocks.add_module('Conv_0',
                               nn.Conv2d(3,
                                         config["out_channel0"],
                                         kernel_size=3,
@@ -170,11 +173,12 @@ class Network(nn.Module):
                                         padding=1,
                                         bias=False))
         
-        self.model.add_module('BN_0',
+        self.blocks.add_module('BN_0',
                               nn.BatchNorm2d(config["out_channel0"]))
 
         feature_maps_in = int(round(config["out_channel0"] * self.widen_factors['Group_1']))
-        self.model.add_module('Group_1',
+        
+        self.blocks.add_module('Group_1',
                               ResidualGroup(block, 
                                             config["out_channel0"], 
                                             feature_maps_in, 
@@ -182,10 +186,9 @@ class Network(nn.Module):
                                             self.filters_size['Group_1'],
                                             self.res_branches['Group_1'],
                                             1))
-
+        feature_maps_out = int(round(feature_maps_in * self.widen_factors['Group_2']))
         for m in range(2, self.M + 1):
-            feature_maps_out = int(round(feature_maps_in * self.widen_factors['Group_{}'.format(m)]))
-            self.model.add_module('Group_{}'.format(m),
+            self.blocks.add_module('Group_{}'.format(m),
                                   ResidualGroup(block, 
                                                 feature_maps_in, 
                                                 feature_maps_out, 
@@ -194,19 +197,22 @@ class Network(nn.Module):
                                                 self.res_branches['Group_{}'.format(m)],
                                                 2 if m in (self.M, self.M - 1) else 1))
             feature_maps_in = feature_maps_out
-
+        
         self.feature_maps_out = feature_maps_out
-        self.model.add_module('ReLU_0',
+        self.blocks.add_module('ReLU_0',
                               nn.ReLU(inplace=True))
-        self.model.add_module('AveragePool',
+        self.blocks.add_module('AveragePool',
                               nn.AvgPool2d(8, stride=1))
-        self.fc = nn.Linear(feature_maps_out, 10)
-
-        self.apply(initialize_weights)
+        
+        self.model.add_module("Main_blocks" ,self.blocks)
+        input_dim = (3,100,100)
+        self.fc_len  = functools.reduce(operator.mul, list(self.blocks(torch.rand(1, *input_dim)).shape))
+        
+        self.fc = nn.Linear(self.fc_len, 2)
 
     def forward(self, x):
         x = self.model(x)
-        x = x.view(-1, self.feature_maps_out)
+        x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
     
