@@ -134,25 +134,25 @@ class Network(nn.Module):
                                 'Group_5': config["R5"]
                                 }
  
-        self.widen_factors = {'Group_1': config["widenfact0"],
-                              'Group_2': config["widenfact1"],
-                              'Group_3': config["widenfact2"],
-                              'Group_4': config["widenfact3"],
-                              'Group_5': config["widenfact4"]
+        self.widen_factors = {'Group_1': config["widenfact1"],
+                              'Group_2': config["widenfact2"],
+                              'Group_3': config["widenfact3"],
+                              'Group_4': config["widenfact4"],
+                              'Group_5': config["widenfact5"]
                               }
 
-        self.res_branches = {'Group_1': config["B0"],
-                             'Group_2': config["B1"],
-                             'Group_3': config["B2"],
-                             'Group_4': config["B3"],
-                             'Group_5': config["B4"]
+        self.res_branches = {'Group_1': config["B1"],
+                             'Group_2': config["B2"],
+                             'Group_3': config["B3"],
+                             'Group_4': config["B4"],
+                             'Group_5': config["B5"]
                              }
 
-        self.conv_blocks =  {'Group_1': config["convblock0"],
-                             'Group_2': config["convblock1"],
-                             'Group_3': config["convblock2"],
-                             'Group_4': config["convblock3"],
-                             'Group_5': config["convblock4"]
+        self.conv_blocks =  {'Group_1': config["convblock1"],
+                             'Group_2': config["convblock2"],
+                             'Group_3': config["convblock3"],
+                             'Group_4': config["convblock4"],
+                             'Group_5': config["convblock5"]
                              }
         
         self.filters_size = {'Group_1': 3,
@@ -168,7 +168,7 @@ class Network(nn.Module):
         self.blocks.add_module('Conv_0',
                               nn.Conv2d(3,
                                         config["out_channel0"],
-                                        kernel_size=3,
+                                        kernel_size=7,
                                         stride=1,
                                         padding=1,
                                         bias=False))
@@ -176,7 +176,7 @@ class Network(nn.Module):
         self.blocks.add_module('BN_0',
                               nn.BatchNorm2d(config["out_channel0"]))
 
-        feature_maps_in = int(round(config["out_channel0"] * self.widen_factors['Group_1']))
+        feature_maps_in = int(round(config["out_channel0"] // self.widen_factors['Group_1']))
         
         self.blocks.add_module('Group_1',
                               ResidualGroup(block, 
@@ -186,8 +186,10 @@ class Network(nn.Module):
                                             self.filters_size['Group_1'],
                                             self.res_branches['Group_1'],
                                             1))
-        feature_maps_out = int(round(feature_maps_in * self.widen_factors['Group_2']))
+        feature_maps_out = feature_maps_in
+        #feature_maps_out = int(round(feature_maps_in // self.widen_factors['Group_2']))
         for m in range(2, self.M + 1):
+            feature_maps_out = int(round(feature_maps_in // self.widen_factors['Group_{}'.format(m)]))
             self.blocks.add_module('Group_{}'.format(m),
                                   ResidualGroup(block, 
                                                 feature_maps_in, 
@@ -197,6 +199,7 @@ class Network(nn.Module):
                                                 self.res_branches['Group_{}'.format(m)],
                                                 2 if m in (self.M, self.M - 1) else 1))
             feature_maps_in = feature_maps_out
+            
         
         self.feature_maps_out = feature_maps_out
         self.blocks.add_module('ReLU_0',
