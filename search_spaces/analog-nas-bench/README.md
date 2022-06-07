@@ -1,3 +1,4 @@
+# Analog-NAS-Bench 
 This repository contains the code used for generating and interacting with the Analog-NAS-Bench. 
 The complete search space contains 32M architectures. 
 We trained a surrogate model on 864 architectures. 
