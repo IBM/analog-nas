@@ -10,17 +10,17 @@ class EAOptimizer:
         self.mutation_prob_other = mutation_prob_other
 
     def mutate_width(self, architecture):
-        if random.random() > self.mutation_prob:
+        if random.random() > self.mutation_prob_width:
             architecture = random_sample()
         return architecture
 
     def mutate_depth(self, architecture):
-        if random.random() > self.mutation_prob:
+        if random.random() > self.mutation_prob_depth:
             architecture = random_sample()
         return architecture
 
     def mutate_other(self, architecture):
-        if random.random() > self.mutation_prob:
+        if random.random() > self.mutation_prob_other:
             architecture = random_sample()
         return architecture
 

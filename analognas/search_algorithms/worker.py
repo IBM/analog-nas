@@ -7,14 +7,14 @@ max_budget (hrs): maximum search time if n_iter is not exceeded.
 n_iter: number of iteration 
 '''
 class Worker():
-    def __init__(self, dataset = "VWW", cs: ConfigSpace=None, eval = None, max_budget=1, n_iter=100, search_algorithm="rs"): 
-        self.dataset = dataset 
+    def __init__(self, cs: ConfigSpace=None, eval = None, optimizer= None, max_budget=1, n_iter=100): 
         self.max_budget = max_budget
         self.n_iter = n_iter
         self.config_space = cs
         self.search_algorithm = search_algorithm # can be random or grid 
         self.best_solution = self.config_space.sample()
         self.evaluation = eval
+        self.optimizer=optimizer
         
     def rs_search(self, sample=100):
         D = self.cs.sample() # initial decision variables

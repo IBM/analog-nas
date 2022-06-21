@@ -1,6 +1,6 @@
 import pandas as pd
 import torch 
-import ..config_space as CS
+import analognas.search_spaces.config_space as CS
 from macro_architecture import Network
 
 class AnalogNASBench():
