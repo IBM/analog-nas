@@ -1,20 +1,31 @@
+import os
+import json
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
+
+import numpy as np
 from numpy.random import rand
 from numpy.random import seed
 from scipy.stats import kendalltau
 from scipy.stats import spearmanr
-import math
-import torch 
+
+def accuracy_mse(prediction, target, scale=100.0):
+    prediction = prediction.detach() * scale
+    target = (target) * scale
+    return F.mse_loss(prediction, target)
+
 
 ALPHA = 0.05 
 
-##################################
-# Ranking Correlations  
 '''
 Compute the kendal correlation between two variables v1 & v2 
 '''
 def kendal_correlation(v1, v2):
     coef, p =  kendalltau(v1, v2)
-    print(p)
+
     if p > ALPHA:
         print("Samples are uncorrelated (fail to reject H0)")
         return 0
@@ -44,6 +55,7 @@ def check_ties(v1, v2):
     if len(v1_set.intersection(v2_set)) > 0: 
         return(True)  
     return(False)    
+
 
 def truncate(f, n):
     return math.floor(f * 10 ** n) / 10 ** n
