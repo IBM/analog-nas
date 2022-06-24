@@ -70,16 +70,16 @@ class EAOptimizer:
 
     def generate_initial_population(self): 
         P = [self.cs.sample(self.max_nb_param)]* self.population_size
-        _, slope = self.surrogate(P)
+        _, slope = self.surrogate.query(P)
 
         while (not self.satisfied_constrained(P)):
             for i, s in enumerate(slope):
                 if s > self.max_drop:
                     P[i] = self.cs.sample(self.max_nb_param)
         return P
-        
+
     def satisfied_constrained(self, P):
-        _, slope = self.surrogate(P)
+        _, slope = self.surrogate.query(P)
         for i, s in enumerate(slope):
                 if s > self.max_drop:
                     return False
@@ -94,7 +94,7 @@ class EAOptimizer:
             # use an "operator" to generate a new candidate solution
             # this is "uniform mutation" in MOEA lin
             new_x = self.mutate(P) 
-            new_f = self.evaluation(new_x)
+            new_f = self.surrogate.query(new_x)
             if new_f > best_f: # see if it's an improvement -- in multiobjective, this is the Pareto sort
                 best_f = new_f
                 best_x = new_x
