@@ -1,9 +1,10 @@
 """Bayesian Optimizer."""
+import numpy as np
 
 class BOptimizer:
     def __init__(self, max_iter):
         self.max_iter = max_iter
-        
+
     # surrogate or approximation for the objective function
     def surrogate(self, model, X):
         # catch any warning generated when making a prediction

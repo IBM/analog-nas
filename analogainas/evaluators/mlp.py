@@ -1,7 +1,6 @@
-import numpy as np 
+import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
@@ -9,6 +8,7 @@ from analognas.evaluators import Evaluator
 from analognas.utils import accuracy_mse
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 """ 
 Base MLP Architecture.
@@ -24,15 +24,18 @@ class MLPModel(nn.Module):
         dropout = 0.0
     ):
         super(MLPModel, self).__init__()
+
         assert (
-            len(layer_width) == num_layers
-        ), "You need to specify the width of each layer."
+            len(layer_width) == num_layers,
+            "You need to specify the width of each layer."
+        )
 
         self.activation = eval("F." + activation)
 
         all_units = [input_dims] + layer_width
         self.layers = nn.ModuleList(
-            [nn.Linear(all_units[i], all_units[i + 1]) for i in range(num_layers)]
+            [nn.Linear(all_units[i], all_units[i + 1])
+             for i in range(num_layers)]
         )
         self.dropout = nn.Dropout(dropout)
         self.out = nn.Linear(all_units[-1], output_dims)
@@ -69,7 +72,13 @@ class MLPEvaluator(Evaluator):
         evaluator = MLPModel(**kwargs)
         return evaluator
 
-    def fit(self, xtrain, ytrain, train_info_file="mlp.txt", hyperparameters=None, epochs=500, loss="mae", verbose=0):
+    def fit(self, xtrain, ytrain,
+            train_info_file="mlp.txt",
+            hyperparameters=None,
+            epochs=500,
+            loss="mae",
+            verbose=0):
+
         if hyperparameters == None:
             self.hyperparams = self.default_hyperparams.copy()
         else:
@@ -83,7 +92,7 @@ class MLPEvaluator(Evaluator):
 
         self.mean = np.mean(ytrain)
         self.std = np.std(ytrain)
-        
+
         # TODO: Add encoding 
 
         _xtrain = xtrain

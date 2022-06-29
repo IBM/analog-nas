@@ -1,9 +1,10 @@
 from analognas.utils import kendal_correlation
 
+
 """Base class for Accuracy Evaluation Methods."""
 class Evaluator:
     def __init__(self, model_type=None):
-        self.model_type = model_type 
+        self.model_type = model_type
 
     def pre_process(self):
         """
@@ -14,11 +15,11 @@ class Evaluator:
 
     def fit(self, x_train, y_train):
         """
-        Training the evaluator. 
-        
+        Training the evaluator.
+
         Args:
-            x_train: list of architectures 
-            y_train: accuracies or ranks 
+            x_train: list of architectures
+            y_train: accuracies or ranks
         """
         pass
 
@@ -29,17 +30,17 @@ class Evaluator:
         Args:
             x_test: list of architectures
 
-        Returns: 
+        Returns:
             Predictions for the architectures
         """
         pass
 
     def get_evaluator_stat(self):
         """
-        Check whether the evaluator needs retraining. 
+        Check whether the evaluator needs retraining.
 
-        Returns: 
-            A dictionary of metrics. 
+        Returns:
+            A dictionary of metrics.
         """
         reqs = {
             "requires_retraining": False,
@@ -51,19 +52,19 @@ class Evaluator:
 
     def set_hyperparams(self, hyperparams):
         """
-        Modifies/sets hyperparameters of the evaluator. 
+        Modifies/sets hyperparameters of the evaluator.
 
         Args:
-            hyperparams: dictionary of hyperparameters. 
+            hyperparams: dictionary of hyperparameters.
         """
         self.hyperparams = hyperparams
 
     def get_hyperparams(self):
         """
-        Get the hyperparameters of the evaluator. 
+        Get the hyperparameters of the evaluator.
 
-        Returns: 
-            A dictionary of hyperparameters. 
+        Returns:
+            A dictionary of hyperparameters.
             If not manually set, a dictionary of the default hyperparameters.
         """
         if hasattr(self, "hyperparams"):

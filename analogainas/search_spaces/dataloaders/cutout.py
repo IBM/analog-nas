@@ -4,6 +4,7 @@ import numpy as np
 
 class Cutout(object):
     """Randomly mask out one or more patches from an image.
+
     Args:
         n_holes (int): Number of patches to cut out of each image.
         length (int): The length (in pixels) of each square patch.
@@ -17,7 +18,8 @@ class Cutout(object):
         Args:
             img (Tensor): Tensor image of size (C, H, W).
         Returns:
-            Tensor: Image with n_holes of dimension length x length cut out of it.
+            Tensor: Image with n_holes of dimension
+                    length x length cut out of it.
         """
         h = img.size(1)
         w = img.size(2)

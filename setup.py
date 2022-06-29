@@ -13,7 +13,7 @@ if sys.version_info.major != 3 or sys.version_info.minor < 7 or sys.version_info
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
-version_path = os.path.join(cwd, 'analognas', '__version__.py')
+version_path = os.path.join(cwd, 'analogainas', '__version__.py')
 with open(version_path) as fh:
     version = fh.readlines()[-1].split()[-1].strip("\"'")
 
@@ -29,9 +29,9 @@ print('-- Building version ' + version)
 print('-- Note: by default installs pytorch-cpu version (1.9.0), update to torch-gpu by following instructions from: https://pytorch.org/get-started/locally/')
 
 setup(
-    name='analognas',
+    name='analogainas',
     version=version,
-    description='AnalogNAS: A modular and extensible Analog-aware Neural Architecture Search (NAS) library.',
+    description='AnalogAINAS: A modular and extensible Analog-aware Neural Architecture Search (NAS) library.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     author='IBM Research',
