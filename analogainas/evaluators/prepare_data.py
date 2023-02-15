@@ -3,7 +3,7 @@ from numpy import genfromtxt
 from sklearn.model_selection import train_test_split
 
 class AccuracyDataLoader:
-    def __init__(self, dataset_file="analog_bench.csv", transforms=None):
+    def __init__(self, dataset_file="dataset_cifar10.csv", transforms=None):
         self.dataset_file = dataset_file
         self.data = genfromtxt(self.dataset_file, delimiter=',')
 

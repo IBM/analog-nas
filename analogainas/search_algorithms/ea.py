@@ -1,5 +1,5 @@
 import random
-from analognas.search_spaces.sample import random_sample
+from analogainas.search_spaces.sample import random_sample
 
 
 class EAOptimizer:

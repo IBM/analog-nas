@@ -6,15 +6,16 @@ class Hyperparameter:
     """
     Class defines a hyperparameter and its range.
     """
-    def __init__(self, name, type, range=None, min_value=0, max_value=0):
+    def __init__(self, name, type, range=None, min_value=0, max_value=0, step=1):
         self.name = name
         self.min_value = min_value
         self.max_value = max_value
+        self.step = step 
         self.range = range
         if self.range is not None:
             self.sampling = "range"
         else:
-            self.type = type  # Discrete, continuous, categorical
+            self.type = type  # Discrete, continuous
             self.sampling = "uniform"
 
     def sample_hyp(self):
@@ -25,25 +26,47 @@ class Hyperparameter:
         if self.type == "continuous":
             return np.random.uniform(self.min_value, high=self.max_value)
 
+    def size(self):
+        if self.sampling == "range":
+            return len(self.range)
+        if self.type == "continuous":
+            return 1
+        return len(np.arange(self.min_value, self.max_value, self.step))
+
+    def __repr__(self) -> str:
+        return "Name: {}\nMin_Value:{}\nMax_value:{}\nStep:{}".format(
+            str(self.name), str(self.min_value), str(self.max_value), str(self.step)
+        )
+
+
 
 class ConfigSpace:
     """
     This class defines the search space.
     """
-    def __init__(self, dataset):
+    def __init__(self, dataset="CIFAR-10"):
         self.dataset = dataset  # VWW, KWS
         self.search_space = "resnet-like"  # for now only resnet-like
         self.hyperparameters = []  # list of Hyperparameters to search for
         self.set_hyperparameters()
 
-    def add_hyperparameter(self, name, type, min_value, max_value):
+    def add_hyperparameter(self, name, type, min_value, max_value, step=1):
+        for h in self.hyperparameters:
+            if h.name == name:
+                raise Exception("Name should be unique!")
+
         hyp = Hyperparameter(name,
                              type,
                              min_value=min_value,
-                             max_value=max_value)
+                             max_value=max_value, 
+                             step=step)
         self.hyperparameters.append(hyp)
 
     def add_hyperparameter_range(self, name, type, range):
+        for h in self.hyperparameters:
+            if h.name == name:
+                raise Exception("Name should be unique!")
+
         hyp = Hyperparameter(name, type, range=range)
         self.hyperparameters.append(hyp)
 
@@ -70,24 +93,51 @@ class ConfigSpace:
         if self.search_space == "resnet-like":
             self.add_hyperparameter_range("out_channel0",
                                           "discrete",
-                                          [8, 12, 16, 32, 48, 64])
-            self.add_hyperparameter("M", "discrete", 1, 5)
-            self.add_hyperparameter("R1", "discrete", 1, 16)
-            self.add_hyperparameter("R2", "discrete", 0, 16)
-            self.add_hyperparameter("R3", "discrete", 0, 16)
-            self.add_hyperparameter("R4", "discrete", 0, 16)
-            self.add_hyperparameter("R5", "discrete", 0, 16)
+                                          range=[8, 12, 16, 32, 48, 64])
+            self.add_hyperparameter("M", "discrete", min_value=1, max_value=5)
+            self.add_hyperparameter("R1", "discrete", min_value=1, max_value=16)
+            self.add_hyperparameter("R2", "discrete", min_value=0, max_value=16)
+            self.add_hyperparameter("R3", "discrete", min_value=0, max_value=16)
+            self.add_hyperparameter("R4", "discrete", min_value=0, max_value=16)
+            self.add_hyperparameter("R5", "discrete", min_value=0, max_value=16)
 
             for i in range(1, 6):
                 self.add_hyperparameter_range("convblock%d" % i,
                                               "discrete",
-                                              [1, 2])
+                                              range=[1, 2])
                 self.add_hyperparameter("widenfact%d" % i,
                                         "continuous",
-                                        0.5,
-                                        0.8)
-                self.add_hyperparameter("B%d" % i, "discrete", 1, 5)
+                                        min_value=0.5,
+                                        max_value=0.8)
+                self.add_hyperparameter("B%d" % i, "discrete", min_value=1, max_value=5)
 
+    def remove_hyperparameter(self, name):
+        for i, h in enumerate(self.hyperparameters):
+            if h.name == name:
+                self.hyperparameters.remove(h)
+                break
+
+    def compute_cs_size(self):
+        size = 1
+        for h in self.hyperparameters:
+            size *= h.size()
+        return size
+
+    def get_hyperparameters(self):
+        l = []
+        for h in self.hyperparameters:
+            l.append(h.name)
+        print(l)
+
+    def __repr__(self) -> str:
+        str_ = ""
+        str_ += "Architecture Type: {}\n".format(self.search_space)
+        str_ += "Search Space Size: {}\n".format(self.compute_cs_size())
+        str_ += "------------------------------------------------\n"
+        for i, h in enumerate(self.hyperparameters):
+            str_ += "{})\n".format(i) + str(h) + "\n\n"
+        str_ += "------------------------------------------------\n"
+        return str_ 
 
 def main():
     CS = ConfigSpace("Cifar-10")
