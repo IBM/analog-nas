@@ -55,6 +55,5 @@ setup(
     packages=find_packages(),
     python_requires='>=3.7',
     platforms=['Linux'],
-    install_requires=requirements,
-    keywords=['NAS', 'analog']
+    install_requires=requirements
 )
