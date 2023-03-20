@@ -1,8 +1,8 @@
-from analognas.search_spaces.resnet_macro_architecture import Network
-from analognas.search_spaces.config_space import ConfigSpace
-from analognas.search_algorithms.worker import Worker
-from analognas.search_spaces.train import train
-from utils import *
+from analogainas.search_spaces.resnet_macro_architecture import Network
+from analogainas.search_spaces.config_space import ConfigSpace
+from analogainas.search_algorithms.worker import Worker
+from analogainas.search_spaces.train import train
+from analogainas.utils import *
 import csv
 
 EPOCHS = 40

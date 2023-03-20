@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import CosineAnnealingLR
-from cutout import *
 
 # AIHWKIT IMPORTS
 from aihwkit.simulator.configs import InferenceRPUConfig
@@ -17,8 +16,8 @@ from aihwkit.nn.conversion import convert_to_analog_mapped
 from aihwkit.nn import AnalogSequential
 from aihwkit.optim import AnalogSGD
 
-from analognas.search_spaces.resnet_macro_architecture import Network
-from analognas.search_spaces.dataloaders.dataloader import load_cifar10
+from analogainas.search_spaces.resnet_macro_architecture import Network
+from analogainas.search_spaces.dataloaders.dataloader import load_cifar10
 
 continue_analog = True
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
