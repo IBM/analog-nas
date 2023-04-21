@@ -59,7 +59,7 @@ class EAOptimizer:
             architecture= self.mutate_depth(cs,architecture)
         else: 
             architecture= self.mutate_other(cs,architecture)
-        
+            
         return architecture
 
     def mutate_width(self, cs, architecture):
@@ -106,7 +106,6 @@ class EAOptimizer:
                 new_a = self.mutate(cs, a)
                 new_P.append(new_a)
                 acc, _ = self.surrogate.query(new_a)
-                acc = random.random()*(0.88-0.56)+0.56
                 best_accs.append(acc)
             new_f = max(best_accs)
             if new_f > best_f:
