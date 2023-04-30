@@ -51,6 +51,11 @@ Afterwards, install AnalogNAS by running the ```setup.py``` file:
 python setup.py install 
 ```
 
+Alternatively, you can also download the package through pip: 
+```
+pip install analogainas
+```
+
 ## Example 
 
 ```python
