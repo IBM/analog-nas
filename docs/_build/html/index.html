@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AnalogNAS &mdash; AnalogNAS v0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="install.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            AnalogNAS
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Get started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">AnalogNAS</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">AnalogNAS</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="analognas">
+<h1>AnalogNAS<a class="headerlink" href="#analognas" title="Permalink to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>AnalogNAS is a Python library designed to empower researchers and practitioners in efficiently exploring and optimizing neural network architectures specifically for in-memory computing scenarios. AnalogNAS is built on top of the IBM Analog Hardware Acceleration Kit that enables efficient hardware-aware training with simulated noise injection on multiple IMC devices. By capitalizing on the advantages of in-memory computing, AnalogNAS opens new avenues for discovering architectures that can fully exploit the capabilities of this emerging computing paradigm.</p>
+<p>AnalogNAS offers a comprehensive set of features and functionalities that facilitate the neural architecture search process. From seamlessly exploring a vast space of architectural configurations to fine-tuning models for optimal performance, AnalogNAS provides a versatile framework that accelerates the discovery of efficient and effective neural network architectures for in-memory computing.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This library is currently in beta and under active development.
+Please be mindful of potential issues and keep an eye for improvements,
+new features and bug fixes in upcoming versions.</p>
+</div>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Permalink to this heading"></a></h2>
+<ul class="simple">
+<li><p>A customizable resnet-like search space, allowing to target CIFAR-10, Visual Wake Words, and Keyword Spotting</p></li>
+<li><p>A configuration space object allows to add any number or type of architecture and training hyperparameters to the search</p></li>
+<li><p>An analog-specific evaluator which includes:</p>
+<ul>
+<li><p>An 1-day accuracy ranker</p></li>
+<li><p>An 1 month accuracy variation estimator</p></li>
+<li><p>A 1-day standard deviation estimator</p></li>
+</ul>
+</li>
+<li><p>A flexible search algorithm, enabling the implementation and extension of state-of-the-art NAS methods.</p></li>
+</ul>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading"></a></h2>
+<p>Install analogNAS by running:</p>
+<blockquote>
+<div><p>pip install analogainas</p>
+</div></blockquote>
+</section>
+<section id="how-to-cite">
+<h2>How to cite<a class="headerlink" href="#how-to-cite" title="Permalink to this heading"></a></h2>
+<p>In case you are using the <em>AnalogNAS</em> for
+your research, please cite:</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Benmeziane, H., Lammie, C., Boybat, I., Rasch, M., Gallo, M. L., Tsai, H., … &amp; Maghraoui, K. E. (2023). AnalogNAS: A Neural Network Design Framework for Accurate Inference with Analog In-Memory Computing. IEEE Edge 2023.</p>
+<p><a class="reference external" href="https://arxiv.org/abs/2305.10459">https://arxiv.org/abs/2305.10459</a></p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="install.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Hadjer Benmeziane, Corey Lammie, Irem Boybat, Malte Rasch, Manuel Le Gallo, Smail Niar, Hamza Ouarnoughi, Ramachandran Muralidhar, Sidney Tsai, Vijay Narayanan, Abu Sebastian, Kaoutar El Maghraoui.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
