@@ -1,3 +1,4 @@
+"""High level Sampling strategies."""
 from analogainas.search_spaces.resnet_macro_architecture import Network
 from analogainas.search_spaces.config_space import ConfigSpace
 from analogainas.search_algorithms.worker import Worker

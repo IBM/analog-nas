@@ -1,3 +1,4 @@
+"""Hyperparameter Configuration Space."""
 import numpy as np
 import random
 

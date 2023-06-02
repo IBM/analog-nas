@@ -1,3 +1,4 @@
+"""XGBoost evaluator."""
 from tabnanny import verbose
 import xgboost as xgb 
 #from base_evaluator import Evaluator

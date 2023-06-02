@@ -1,3 +1,4 @@
+"""Classical Evolutionary Algorithm."""
 import random
 from analogainas.search_spaces.sample import random_sample
 

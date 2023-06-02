@@ -10,6 +10,14 @@ AnalogNAS
     getting_started
 
 
+.. toctree::
+   :maxdepth: 3
+   :caption: References
+   :hidden:
+
+   api_references
+   references
+
 AnalogNAS is a Python library designed to empower researchers and practitioners in efficiently exploring and optimizing neural network architectures specifically for in-memory computing scenarios. AnalogNAS is built on top of the IBM Analog Hardware Acceleration Kit that enables efficient hardware-aware training with simulated noise injection on multiple IMC devices. By capitalizing on the advantages of in-memory computing, AnalogNAS opens new avenues for discovering architectures that can fully exploit the capabilities of this emerging computing paradigm.
 
 AnalogNAS offers a comprehensive set of features and functionalities that facilitate the neural architecture search process. From seamlessly exploring a vast space of architectural configurations to fine-tuning models for optimal performance, AnalogNAS provides a versatile framework that accelerates the discovery of efficient and effective neural network architectures for in-memory computing.

@@ -1,3 +1,4 @@
+"""Abstract class for base evaluator."""
 from analogainas.utils import kendal_correlation
 
 
