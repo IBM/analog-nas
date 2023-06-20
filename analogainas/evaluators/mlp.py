@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
-
+from sklearn.preprocessing import StandardScaler
 from analognas.evaluators import Evaluator
 from analognas.utils import accuracy_mse
 
@@ -94,7 +94,8 @@ class MLPEvaluator(Evaluator):
         self.mean = np.mean(ytrain)
         self.std = np.std(ytrain)
 
-        # TODO: Add encoding 
+        scaler = StandardScaler()
+        _xtrain = scaler.fit_transform(xtrain)
 
         _xtrain = xtrain
         _ytrain = np.array(ytrain)

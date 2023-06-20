@@ -12,7 +12,10 @@ class XGBoostEvaluator():
         model_type = "XGBRanker",
         load_weight = True,
         hpo_wrapper=False,
-        hparams_from_file=False
+        hparams_from_file=False, 
+        avm_predictor_path = "weights\surrogate_xgboost_avm.json", 
+        std_predictor_path = "weights\surrogate_xgboost_std.json", 
+        ranker_path = "weights\surrogate_xgboost_ranker.json"
     ):
         self.model_type = model_type
         self.hpo_wrapper = hpo_wrapper
@@ -34,23 +37,26 @@ class XGBoostEvaluator():
         self.ranker = self.get_ranker()
         self.avm_predictor = self.get_avm_predictor()
         self.std_predictor = self.get_std_predictor()
+        self.ranker_path = ranker_path
+        self.avm_predictor_path = avm_predictor_path
+        self.std_predictor_path = std_predictor_path
 
     def get_ranker(self):
         ranker = xgb.XGBRanker(**self.default_hyperparams)
         if self.load_weight == True: 
-            ranker.load_model(r"C:\Users\hadjer\analog-nas\analogainas\evaluators\weights\surrogate_xgboost_ranker.json")
+            ranker.load_model(self.ranker_path)
         return ranker
 
     def get_avm_predictor(self):
         avm_predictor = xgb.XGBRegressor()
         if self.load_weight == True: 
-            avm_predictor.load_model(r"C:\Users\hadjer\analog-nas\analogainas\evaluators\weights\surrogate_xgboost_avm.json")
+            avm_predictor.load_model(self.avm_predictor_path)
         return avm_predictor
 
     def get_std_predictor(self):
         std_predictor = xgb.XGBRegressor()
         if self.load_weight == True: 
-            std_predictor.load_model(r"C:\Users\hadjer\analog-nas\analogainas\evaluators\weights\surrogate_xgboost_std.json")
+            std_predictor.load_model(self.std_predictor_path)
         return std_predictor
 
     def fit(self, x_train, y_train, train_info_file="xgboost.txt", hyperparameters=None, epochs=500, verbose=True):

@@ -22,7 +22,6 @@ from analogainas.search_spaces.dataloaders.dataloader import load_cifar10
 continue_analog = True
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-
 def create_rpu_config(g_max=25,
                       tile_size=256,
                       dac_res=256,

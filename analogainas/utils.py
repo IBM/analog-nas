@@ -5,7 +5,6 @@ import math
 
 ALPHA = 0.05
 
-
 def accuracy_mse(prediction, target, scale=100.0):
     prediction = prediction.detach() * scale
     target = (target) * scale
