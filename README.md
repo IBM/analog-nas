@@ -1,11 +1,11 @@
 # AnalogNAS
 
 ## Description
-**AnalogNas** is a modular and flexible framework to facilitate implementation of Analog-aware Neural Architecture Search. It offers high-level classes to define: the search space, the accuracy evaluator, and the search strategy. It leverages [the aihwkit framework](https://github.com/IBM/aihwkit) to apply hardware-aware training with analog non-idealities and noise included. **AnalogNAS** obtained architectures are more robust during inference on Analog Hardware. We also include two evaluators trained to rank the architectures according to their analog training accuracy. 
+**AnalogNas** is a modular and flexible framework to facilitate the implementation of Analog-aware Neural Architecture Search. It offers high-level classes to define: the search space, the accuracy evaluator, and the search strategy. It leverages [the aihwkit framework](https://github.com/IBM/aihwkit) to apply hardware-aware training with analog non-idealities and noise included. **AnalogNAS** obtained architectures are more robust during inference on Analog Hardware. We also include two evaluators trained to rank the architectures according to their analog training accuracy. 
 
 > :warning: This library is currently in beta and under active development.
-> Please be mindful of potential issues and keep an eye for improvements,
-> new features and bug fixes in upcoming versions.
+> Please be mindful of potential issues and monitor for improvements,
+> new features, and bug fixes in upcoming versions.
 
 [**Setup**](#setup)
 | [**Usage**](#usage)
@@ -78,7 +78,7 @@ worker.result_summary() # print results
 ``` 
 
 ## Usage
-To get started, check out ```nas_search_demo.py``` and ```starter_notebook.ipynb``` to make sure that the installation went well. 
+To get started, check out ```nas_search_demo.py``` and ```starter_notebook.ipynb``` to ensure the installation went well. 
 
 ## Authors 
 AnalogNAS has been developed by IBM Research, 
@@ -88,6 +88,33 @@ Smail Niar, Hamza Ouarnoughi, Ramachandran Muralidhar, Sidney Tsai, Vijay Naraya
 Abu Sebastian, and Kaoutar El Maghraoui
 
 You can contact us by opening a new issue in the repository. 
+
+## How to cite?
+
+In case you are using the _AnalogNas_ toolkit for
+your research, please cite the IEEE Edge 2023 paper that describes the toolkit:
+
+> Hadjer Benmeziane, Corey Lammie, Irem Boybat, Malte Rasch, Manuel Le Gallo,
+> Hsinyu Tsai, Ramachandran Muralidhar, Smail Niar, Ouarnoughi Hamza, Vijay Narayanan,
+> Abu Sebastian and Kaoutar El Maghraoui
+> "AnalogNAS: A Neural Network Design Framework for Accurate Inference with Analog In-Memory Computing" (2023 IEEE INTERNATIONAL CONFERENCE ON EDGE
+> COMPUTING & COMMUNICATIONS (IEEE Edge))
+
+> https://arxiv.org/abs/2305.10459
+
+
+## Awards and Media Mentions 
+
+* We are proud to share that AnalogNAS open source project the prestigious **IEEE OPEN SOURCE SCIENCE** in 2023 at the [IEEE 2023 Services Computing Congress](https://conferences.computer.org/services/2023/awards/).
+  
+ <img width="809" alt="image" src="https://github.com/IBM/analog-nas/assets/7916630/730120f7-7ca1-4ddb-a432-c992470322bc">
+ 
+* AnalogNAS paper received the **Best Paper Award** at [2023 IEEE EDGE (INTERNATIONAL CONFERENCE ON EDGE COMPUTING & COMMUNICATIONS)](https://conferences.computer.org/edge/2023/)
+
+  <img width="796" alt="image" src="https://github.com/IBM/analog-nas/assets/7916630/922a655f-b5fd-4131-80d2-c5b8761c572e">
+
+  
+
 
 ## References
 * [Hardware-aware Neural Architecture Search: Survey and Taxonomy](https://www.ijcai.org/proceedings/2021/592)
