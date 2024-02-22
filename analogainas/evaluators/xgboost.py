@@ -1,6 +1,7 @@
 """XGBoost evaluator."""
 from tabnanny import verbose
 import xgboost as xgb 
+import numpy as np 
 #from base_evaluator import Evaluator
 
 """
@@ -13,9 +14,9 @@ class XGBoostEvaluator():
         load_weight = True,
         hpo_wrapper=False,
         hparams_from_file=False, 
-        avm_predictor_path = "weights\surrogate_xgboost_avm.json", 
-        std_predictor_path = "weights\surrogate_xgboost_std.json", 
-        ranker_path = "weights\surrogate_xgboost_ranker.json"
+        avm_predictor_path = "analogainas/evaluators/weights/xgboost_avm.bst", 
+        std_predictor_path = "analogainas/evaluators/weights/xgboost_std.bst", 
+        ranker_path = "analogainas/evaluators/weights/xgboost_ranker_acc.bst"
     ):
         self.model_type = model_type
         self.hpo_wrapper = hpo_wrapper
@@ -34,17 +35,19 @@ class XGBoostEvaluator():
         self.hyperparams = None
         self.hparams_from_file = hparams_from_file
         self.load_weight = load_weight
-        self.ranker = self.get_ranker()
-        self.avm_predictor = self.get_avm_predictor()
-        self.std_predictor = self.get_std_predictor()
         self.ranker_path = ranker_path
         self.avm_predictor_path = avm_predictor_path
         self.std_predictor_path = std_predictor_path
+        
+        self.ranker = self.get_ranker()
+        self.avm_predictor = self.get_avm_predictor()
+        self.std_predictor = self.get_std_predictor()
 
     def get_ranker(self):
-        ranker = xgb.XGBRanker(**self.default_hyperparams)
+        ranker = xgb.XGBRegressor()
         if self.load_weight == True: 
             ranker.load_model(self.ranker_path)
+        
         return ranker
 
     def get_avm_predictor(self):
@@ -81,6 +84,7 @@ class XGBoostEvaluator():
         for a in P:
             arch = list(a[0].values())
             x_test.append(arch)
+        x_test = np.array(x_test)
         return self.ranker.predict(x_test), self.avm_predictor.predict(x_test)
 
     def query(self, P):
@@ -88,3 +92,26 @@ class XGBoostEvaluator():
         arch = list(P[0].values())
         x_test.append(arch)
         return self.ranker.predict(x_test), self.avm_predictor.predict(x_test)
+    
+    def dcg_at_k(self, r, k, method=0):
+        r = np.asfarray(r)[:k]
+        if r.size:
+            if method == 0:
+                return r[0] + np.sum(r[1:] / np.log2(np.arange(2, r.size + 1)))
+            elif method == 1:
+                return np.sum(r / np.log2(np.arange(2, r.size + 2)))
+        return 0.
+
+    def ndcg_at_k(self, r, k, method=0):
+        dcg_max = self.dcg_at_k(sorted(r, reverse=True), k, method)
+        if not dcg_max:
+            return 0.
+        return self.dcg_at_k(r, k, method) / dcg_max
+
+    def ndcg_scorer(self, estimator, X, y_true):
+        y_pred = estimator.predict(X)
+        # Assuming y_true contains the actual relevance scores
+        # Sort the true scores based on the predictions
+        sorted_scores = [y for _, y in sorted(zip(y_pred, y_true), reverse=True)]
+        return self.ndcg_at_k(sorted_scores, k=len(y_true)) # or use a specific k
+

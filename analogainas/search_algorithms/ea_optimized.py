@@ -80,6 +80,7 @@ class EAOptimizer:
 
     def generate_initial_population(self, cs):
         P = [cs.sample_arch_uniformly(1)] * self.population_size
+        print(len(P))
         _, slope = self.surrogate.query_pop(P)
 
         while (not self.satisfied_constrained(P)):

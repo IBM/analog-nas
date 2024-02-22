@@ -30,8 +30,11 @@ class Worker():
         return Network(self.best_config)
 
     def search(self):
-        os.mkdir("results")
-        print("Result directory created.\n")
+        if os.path.exists("results"):
+            print("The 'results' directory already exists.\n")
+        else:
+            os.mkdir("results")
+            print("Result directory created.\n")
 
         results = []
         for i in range(self.runs):
