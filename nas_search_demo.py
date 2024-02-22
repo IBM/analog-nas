@@ -12,7 +12,7 @@ nb_runs = 2
 worker = Worker(CS, optimizer=optimizer, runs=nb_runs)
 
 worker.search()
-worker.summary()
+worker.result_summary()
 
 best_config = worker.best_config
 best_model = worker.best_arch
