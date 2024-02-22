@@ -1,5 +1,6 @@
+"""Optimized Evolutionary Algorithm - AnalogNAS."""
 import random
-from analognas.search_spaces.sample import random_sample
+from analogainas.search_spaces.sample import random_sample
 
 class EAOptimizer:
     """
@@ -28,74 +29,92 @@ class EAOptimizer:
                             - Modify initial kernel size.
 
         max_nb_param: constraint applied to the number of parameters.
-        max_drop: constraint applied on the predicted slope (robustness check).
+        T_AVM: constraint applied on the predicted AVM (robustness check).
     """
     def __init__(self,
                 surrogate,
                 nb_iter = 200,
-                population_size=100,
+                population_size=50,
                 mutation_prob_width=0.8,
                 mutation_prob_depth=0.8, 
                 mutation_prob_other=0.6,
                 max_nb_param=1,
-                max_drop =10):
+                T_AVM =10):
         
-        assert(
-            population_size < 10,
-            "Population size needs to be at least 10."
-        )
-        
+        assert population_size > 10, f"Population size needs to be at least 10, got {population_size}"
+
         self.surrogate = surrogate
         self.nb_iter = nb_iter
-        self.population_size = population_size
+        self.population_size = int(population_size/10)
         self.mutation_prob_width = mutation_prob_width
         self.mutation_prob_depth = mutation_prob_depth
         self.mutation_prob_other = mutation_prob_other
         self.max_nb_param = max_nb_param
-        self.max_drop = max_drop
+        self.T_AVM = T_AVM
     
-    def mutate_width(self, architecture):
+    def mutate(self, cs, architecture):
+        r = random.random() 
+        if r < 0.4:
+            architecture= self.mutate_width(cs,architecture)
+        elif r < 0.8:
+            architecture= self.mutate_depth(cs,architecture)
+        else: 
+            architecture= self.mutate_other(cs,architecture)
+            
+        return architecture
+
+    def mutate_width(self, cs, architecture):
         if random.random() < self.mutation_prob_width:
-            architecture = random_sample()
+            architecture = cs.sample_arch_uniformly(1)
         return architecture
 
-    def mutate_depth(self, architecture):
+    def mutate_depth(self, cs, architecture):
         if random.random() < self.mutation_prob_depth:
-            architecture = random_sample()
+            architecture = cs.sample_arch_uniformly(1)
         return architecture
 
-    def mutate_other(self, architecture):
+    def mutate_other(self, cs, architecture):
         if random.random() < self.mutation_prob_other:
-            architecture = random_sample()
+            architecture = cs.sample_arch_uniformly(1)
         return architecture
 
-    def generate_initial_population(self):
-        P = [self.cs.sample(self.max_nb_param)] * self.population_size
-        _, slope = self.surrogate.query(P)
+    def generate_initial_population(self, cs):
+        P = [cs.sample_arch_uniformly(1)] * self.population_size
+        _, slope = self.surrogate.query_pop(P)
 
         while (not self.satisfied_constrained(P)):
             for i, s in enumerate(slope):
-                if s > self.max_drop:
-                    P[i] = self.cs.sample(self.max_nb_param)
+                if s > self.T_AVM:
+                    P[i] = cs.sample_arch_uniformly(1)
         return P
 
     def satisfied_constrained(self, P):
-        _, slope = self.surrogate.query(P)
+        _, slope = self.surrogate.query_pop(P)
         for i, s in enumerate(slope):
-                if s > self.max_drop:
+                if s > self.T_AVM:
                     return False
         return True
 
     def run(self, cs):
         P = self.generate_initial_population(cs)
         best_f = 0.0
-        best_x = [None]*P
+        best_x = [None]*self.population_size
 
         for i in range(self.nb_iter):
-            new_x = self.mutate(P)
-            new_f = self.surrogate.query(new_x)
+            best_accs =[]
+            new_P = []
+            for a in P:
+                new_a = self.mutate(cs, a)
+                new_P.append(new_a)
+                acc, _ = self.surrogate.query(new_a)
+                best_accs.append(acc)
+            new_f = max(best_accs)
             if new_f > best_f:
                 best_f = new_f
-                best_x = new_x
+                best_x = new_a[0]
+            
+            P = new_P
 
-        return {'best_x': best_x, 'best_f': best_f}
+            print("ITERATION {} completed: best acc {}".format(i, best_f))
+
+        return best_x, best_f

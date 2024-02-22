@@ -1,35 +1,63 @@
+"""XGBoost evaluator."""
 from tabnanny import verbose
 import xgboost as xgb 
-from analognas.evaluators import Evaluator
+#from base_evaluator import Evaluator
 
 """
 XGboost Evalutor Wrapper class. 
 """
-class XGBoostEvaluator(Evaluator):
+class XGBoostEvaluator():
     def __init__(
         self,
         model_type = "XGBRanker",
-        load_weight = False,
+        load_weight = True,
         hpo_wrapper=False,
-        hparams_from_file=False
+        hparams_from_file=False, 
+        avm_predictor_path = "weights\surrogate_xgboost_avm.json", 
+        std_predictor_path = "weights\surrogate_xgboost_std.json", 
+        ranker_path = "weights\surrogate_xgboost_ranker.json"
     ):
         self.model_type = model_type
         self.hpo_wrapper = hpo_wrapper
         self.default_hyperparams = {
-            'objective': 'rank:ndcg',
-            'eta': 0.1,
-            'gamma': 1.0,
-            'min_child_weight': 0.1,
-            'max_depth': 6}
+            'tree_method':'gpu_hist',
+            'booster':'gbtree',
+            'objective':'rank:pairwise',
+            'random_state':42, 
+            'learning_rate':0.1,
+            'colsample_bytree':0.9, 
+            'eta':0.05, 
+            'max_depth':6, 
+            'n_estimators':110, 
+            'subsample':0.75,
+            'enable_categorical':True}
         self.hyperparams = None
         self.hparams_from_file = hparams_from_file
         self.load_weight = load_weight
+        self.ranker = self.get_ranker()
+        self.avm_predictor = self.get_avm_predictor()
+        self.std_predictor = self.get_std_predictor()
+        self.ranker_path = ranker_path
+        self.avm_predictor_path = avm_predictor_path
+        self.std_predictor_path = std_predictor_path
 
-    def get_model(self, **kwargs):
-        evaluator = xgb.XGBRanker(**kwargs)
+    def get_ranker(self):
+        ranker = xgb.XGBRanker(**self.default_hyperparams)
         if self.load_weight == True: 
-            evaluator.load_model("./weights/surrogate_xgboost.json")
-        return evaluator
+            ranker.load_model(self.ranker_path)
+        return ranker
+
+    def get_avm_predictor(self):
+        avm_predictor = xgb.XGBRegressor()
+        if self.load_weight == True: 
+            avm_predictor.load_model(self.avm_predictor_path)
+        return avm_predictor
+
+    def get_std_predictor(self):
+        std_predictor = xgb.XGBRegressor()
+        if self.load_weight == True: 
+            std_predictor.load_model(self.std_predictor_path)
+        return std_predictor
 
     def fit(self, x_train, y_train, train_info_file="xgboost.txt", hyperparameters=None, epochs=500, verbose=True):
         if hyperparameters == None:
@@ -44,9 +72,19 @@ class XGBoostEvaluator(Evaluator):
         self.evaluator = self.evaluator.train(self.hyperparams, d_train, epochs, watchlist, evals_result=progress)
 
         #SAVE MODEL 
-        self.evaluator.save_model("xgboost.json")
+        self.evaluator.save_model(train_info_file)
 
         return progress['rank:ndcg']
 
-    def query(self, x_test):
-        return self.evaluator.predict(x_test)
+    def query_pop(self, P):
+        x_test = []
+        for a in P:
+            arch = list(a[0].values())
+            x_test.append(arch)
+        return self.ranker.predict(x_test), self.avm_predictor.predict(x_test)
+
+    def query(self, P):
+        x_test = []
+        arch = list(P[0].values())
+        x_test.append(arch)
+        return self.ranker.predict(x_test), self.avm_predictor.predict(x_test)

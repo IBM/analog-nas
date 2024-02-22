@@ -1,4 +1,5 @@
-from analognas.utils import kendal_correlation
+"""Abstract class for base evaluator."""
+from analogainas.utils import kendal_correlation
 
 
 """Base class for Accuracy Evaluation Methods."""

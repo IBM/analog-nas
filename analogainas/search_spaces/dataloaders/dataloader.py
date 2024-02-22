@@ -1,9 +1,11 @@
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from cutout import Cutout
-import pyvww
+from analogainas.search_spaces.dataloaders.cutout import Cutout
 
+import importlib.util
+pyvww = importlib.util.find_spec("pyvww")
+found = pyvww is not None
 
 def load_cifar10(batch_size):
     transform_train = transforms.Compose([
