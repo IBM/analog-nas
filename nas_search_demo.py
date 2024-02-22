@@ -1,8 +1,10 @@
-from analogainas.search_spaces import config_space 
-from analogainas.evaluators import XGBoostEvaluator
-from analogainas.search_algorithms import EAOptimizer, Worker
+from analogainas.search_spaces.config_space import ConfigSpace
+from analogainas.evaluators.xgboost import XGBoostEvaluator
+from analogainas.search_algorithms.ea_optimized import EAOptimizer
+from analogainas.search_algorithms.worker import Worker
 
-CS = config_space('CIFAR-10')  # Search Space Definition
+
+CS = ConfigSpace('CIFAR-10')  # Search Space Definition
 surrogate = XGBoostEvaluator(model_type="XGBRanker", load_weight=True) # 
 optimizer = EAOptimizer(surrogate, population_size=20, nb_iter=50) # The default population size is 100.
 
