@@ -57,4 +57,5 @@ class Worker():
 
     def result_summary(self):
         print("Best architecture accuracy: ", self.best_acc)
-        print(f"Standard deviation of accuracy over {self.runs} runs: {self.best_acc}")
+        print(f"Standard deviation of accuracy over {self.runs} runs: {self.std_err}")
+        print("Best architecture: ", self.best_config)
