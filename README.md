@@ -35,7 +35,6 @@ In a high-level AnalogAINAS consists of 4 main building blocks which (can) inter
     The weights of these models are provided in (```evaluators/weights```).
 * Optimizer (```search_algorithms/```): a optimization strategy such as evolutionary algorithm or bayesian optimization. 
 * Worker (```search_algorithms/worker.py```): A global object that runs the architecture search loop and the final network training pipeline
->>>>>>> public/main
 
 ## Setup 
 While installing the repository, creating a new conda environment is recomended.
