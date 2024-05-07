@@ -222,7 +222,7 @@ def digital_train(name, model, trainloader, testloader):
     epoch_loss_values = []
 
     for epoch in range(400):
-        train(model, optimizer, criterion, epoch, trainloader, testloader, epoch_loss_values)
+        train(model, optimizer, criterion, epoch, trainloader, epoch_loss_values)
         test(name, model, criterion, epoch, trainloader, testloader, dice_metric, metric_values)
         scheduler.step()
 
