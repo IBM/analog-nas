@@ -40,7 +40,7 @@ import shutil
 import os
 import glob
 
-def load_unet(batch_size):
+def load_unet():
     resource = "https://msd-for-monai.s3-us-west-2.amazonaws.com/Task09_Spleen.tar"
     md5 = "410d4a301da4e5b2f6f86ec3ddba524e"
 
@@ -99,10 +99,10 @@ def load_unet(batch_size):
         ]
     )
 
-    train_ds = CacheDataset(data=train_files, transform=train_transforms, cache_rate=1.0, num_workers=4)
+    train_ds = CacheDataset(data=train_files, transform=transform_train, cache_rate=1.0, num_workers=4)
     trainloader = DataLoader(train_ds, batch_size=2, shuffle=True, num_workers=4)
     
-    val_ds = CacheDataset(data=val_files, transform=val_transforms, cache_rate=1.0, num_workers=4)
+    val_ds = CacheDataset(data=val_files, transform=transform_test, cache_rate=1.0, num_workers=4)
     testloader = DataLoader(val_ds, batch_size=1, num_workers=4)
 
     return trainloader, testloader
