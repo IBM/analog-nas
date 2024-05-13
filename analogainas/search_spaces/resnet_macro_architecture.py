@@ -108,6 +108,34 @@ class SkipConnection(nn.Module):
         return out
 
 
+# Transposed convolution block for upsampling
+class TransposeConvBlock(nn.Module):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        stride=2,
+        padding=1,
+        output_padding=1,
+    ):
+        super(TransposeConvBlock, self).__init__()
+        self.tconv = nn.ConvTranspose2d(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            output_padding,
+            bias=False,
+        )
+        self.bn = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        return self.relu(self.bn(self.tconv(x)))
+
+
 class BasicBlock(nn.Module):
     def __init__(
         self, n_input_plane, n_output_plane, filter_size, res_branches, stride
@@ -169,26 +197,9 @@ class ResidualGroup(nn.Module):
         return self.group(x)
 
 
-# Transposed convolution block for upsampling
-class TransposeConvBlock(nn.Module):
-    def __init__(
-        self, n_input_plane, n_output_plane, filter_size, res_branches, stride
-    ):
-        super(TransposeConvBlock, self).__init__()
-        self.tconv = nn.ConvTranspose2d(
-            n_input_plane, n_output_plane, filter_size, stride
-        )
-        self.bn = nn.BatchNorm2d(n_output_plane)
-        self.relu = nn.ReLU(inplace=True)
-
-    def forward(self, x):
-        return self.relu(self.bn(self.tconv(x)))
-
-
 class Network(nn.Module):
     def __init__(self, config, input_dim=(3, 32, 32), classes=10):
         super(Network, self).__init__()
-
         self.dim_dict = {}
         self.M = config["M"]
         self.residual_blocks = {
@@ -265,7 +276,6 @@ class Network(nn.Module):
                 1,
             ),
         )
-
         feature_maps_out = feature_maps_in
         for m in range(2, self.M + 1):
             feature_maps_out = int(
@@ -301,12 +311,10 @@ class Network(nn.Module):
         x = self.model(x)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
-
         for layer in self.layers:
             input_dim = x.shape
             x = layer(x)
             output_dim = x.shape
             dimensions.append((input_dim, output_dim))
         self.dim_dict = {i: dims for i, dims in enumerate(dimensions)}
-
         return x
