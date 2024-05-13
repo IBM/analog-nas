@@ -5,16 +5,18 @@ import torch.optim as optim
 import torch.backends.cudnn as cudnn
 from torch.optim.lr_scheduler import CosineAnnealingLR
 
+import pandas as pd
+
 # AIHWKIT IMPORTS
-from aihwkit.simulator.configs import InferenceRPUConfig
-from aihwkit.simulator.configs.utils import WeightClipType
-from aihwkit.simulator.configs.utils import BoundManagementType
-from aihwkit.simulator.presets.utils import PresetIOParameters
-from aihwkit.inference.noise.pcm import PCMLikeNoiseModel
-from aihwkit.inference.compensation.drift import GlobalDriftCompensation
-from aihwkit.nn.conversion import convert_to_analog_mapped
-from aihwkit.nn import AnalogSequential
-from aihwkit.optim import AnalogSGD
+# from aihwkit.simulator.configs import InferenceRPUConfig
+# from aihwkit.simulator.configs.utils import WeightClipType
+# from aihwkit.simulator.configs.utils import BoundManagementType
+# from aihwkit.simulator.presets.utils import PresetIOParameters
+# from aihwkit.inference.noise.pcm import PCMLikeNoiseModel
+# from aihwkit.inference.compensation.drift import GlobalDriftCompensation
+# from aihwkit.nn.conversion import convert_to_analog_mapped
+# from aihwkit.nn import AnalogSequential
+# from aihwkit.optim import AnalogSGD
 
 from analogainas.search_spaces.resnet_macro_architecture import Network
 from analogainas.search_spaces.dataloaders.dataloader import load_cifar10
@@ -33,7 +35,8 @@ from tqdm import tqdm
 from collections import OrderedDict
 
 continue_analog = True
-device = "cuda" if torch.cuda.is_available() else "cpu"
+# device = "cuda" if torch.cuda.is_available() else "cpu"
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 
 
 class AverageMeter(object):
@@ -55,42 +58,42 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
 
-def create_rpu_config(g_max=25, tile_size=256, dac_res=256, adc_res=256, noise_std=5.0):
-    rpu_config = InferenceRPUConfig()
+# def create_rpu_config(g_max=25, tile_size=256, dac_res=256, adc_res=256, noise_std=5.0):
+#     rpu_config = InferenceRPUConfig()
 
-    rpu_config.clip.type = WeightClipType.FIXED_VALUE
-    rpu_config.clip.fixed_value = 1.0
-    rpu_config.modifier.pdrop = 0  # Drop connect.
+#     rpu_config.clip.type = WeightClipType.FIXED_VALUE
+#     rpu_config.clip.fixed_value = 1.0
+#     rpu_config.modifier.pdrop = 0  # Drop connect.
 
-    rpu_config.modifier.std_dev = noise_std
+#     rpu_config.modifier.std_dev = noise_std
 
-    rpu_config.modifier.rel_to_actual_wmax = True
-    rpu_config.mapping.digital_bias = True
-    rpu_config.mapping.weight_scaling_omega = 0.4
-    rpu_config.mapping.weight_scaling_omega = True
-    rpu_config.mapping.max_input_size = tile_size
-    rpu_config.mapping.max_output_size = 255
+#     rpu_config.modifier.rel_to_actual_wmax = True
+#     rpu_config.mapping.digital_bias = True
+#     rpu_config.mapping.weight_scaling_omega = 0.4
+#     rpu_config.mapping.weight_scaling_omega = True
+#     rpu_config.mapping.max_input_size = tile_size
+#     rpu_config.mapping.max_output_size = 255
 
-    rpu_config.mapping.learn_out_scaling_alpha = True
+#     rpu_config.mapping.learn_out_scaling_alpha = True
 
-    rpu_config.forward = PresetIOParameters()
-    rpu_config.forward.inp_res = 1 / dac_res  # 8-bit DAC discretization.
-    rpu_config.forward.out_res = 1 / adc_res  # 8-bit ADC discretization.
-    rpu_config.forward.bound_management = BoundManagementType.NONE
+#     rpu_config.forward = PresetIOParameters()
+#     rpu_config.forward.inp_res = 1 / dac_res  # 8-bit DAC discretization.
+#     rpu_config.forward.out_res = 1 / adc_res  # 8-bit ADC discretization.
+#     rpu_config.forward.bound_management = BoundManagementType.NONE
 
-    # Inference noise model.
-    rpu_config.noise_model = PCMLikeNoiseModel(g_max=g_max)
+#     # Inference noise model.
+#     rpu_config.noise_model = PCMLikeNoiseModel(g_max=g_max)
 
-    # drift compensation
-    rpu_config.drift_compensation = GlobalDriftCompensation()
-    return rpu_config
+#     # drift compensation
+#     rpu_config.drift_compensation = GlobalDriftCompensation()
+#     return rpu_config
 
 
-def create_analog_optimizer(model, lr):
-    optimizer = AnalogSGD(model.parameters(), lr=lr)
-    optimizer.regroup_param_groups(model)
+# def create_analog_optimizer(model, lr):
+#     optimizer = AnalogSGD(model.parameters(), lr=lr)
+#     optimizer.regroup_param_groups(model)
 
-    return optimizer
+#     return optimizer
 
 
 # IOU Score and DICE Coefficients
@@ -146,8 +149,8 @@ def train(train_loader, model, criterion, optimizer):
 
     pbar = tqdm(total=len(train_loader))
     for input, target, _ in train_loader:
-        input = input.cuda()
-        target = target.cuda()
+        input = input.to(device)
+        target = target.to(device)
 
         output = model(input)
 
@@ -171,8 +174,9 @@ def train(train_loader, model, criterion, optimizer):
         pbar.set_postfix(postfix)
         pbar.update(1)
     pbar.close()
-    print(
-        OrderedDict([("loss", avg_meters["loss"].avg), ("iou", avg_meters["iou"].avg)])
+
+    return OrderedDict(
+        [("loss", avg_meters["loss"].avg), ("iou", avg_meters["iou"].avg)]
     )
 
 
@@ -186,8 +190,8 @@ def test(val_loader, model, criterion):
     with torch.no_grad():
         pbar = tqdm(total=len(val_loader))
         for input, target, _ in val_loader:
-            input = input.cuda()
-            target = target.cuda()
+            input = input.to(device)
+            target = target.to(device)
 
             output = model(input)
             loss = criterion(output, target)
@@ -205,12 +209,13 @@ def test(val_loader, model, criterion):
             pbar.set_postfix(postfix)
             pbar.update(1)
         pbar.close()
-    print(
-        OrderedDict([("loss", avg_meters["loss"].avg), ("iou", avg_meters["iou"].avg)])
+
+    return OrderedDict(
+        [("loss", avg_meters["loss"].avg), ("iou", avg_meters["iou"].avg)]
     )
 
 
-def digital_train(name, model, trainloader, testloader):
+def digital_train(model, trainloader, testloader):
     model.to(device)
     print(sum(p.numel() for p in model.parameters() if p.requires_grad))
     if torch.cuda.device_count() >= 1:
@@ -223,54 +228,77 @@ def digital_train(name, model, trainloader, testloader):
     criterion = BCEDiceLoss()
     optimizer = torch.optim.Adam(model.parameters(), 1e-4)
     scheduler = CosineAnnealingLR(optimizer, T_max=400)
-    dice_metric = DiceMetric(include_background=False, reduction="mean")
-    metric_values = []
-    epoch_loss_values = []
+    # dice_metric = DiceMetric(include_background=False, reduction="mean")
+    # metric_values = []
+    # epoch_loss_values = []
+    log = OrderedDict(
+        [
+            ("epoch", []),
+            ("lr", []),
+            ("loss", []),
+            ("iou", []),
+            ("val_loss", []),
+            ("val_iou", []),
+        ]
+    )
 
-    for epoch in range(400):
-        train(trainloader, model, criterion, optimizer)
-        test(
-            name,
-            model,
-            epoch,
-            trainloader,
+    best_iou = 0
+    trigger = 0
+    for epoch in range(100):
+        train_log = train(trainloader, model, criterion, optimizer)
+        test_log = test(
             testloader,
-            dice_metric,
-            metric_values,
+            model,
             criterion,
         )
         scheduler.step()
+        log["epoch"].append(epoch)
+        log["lr"].append(1e-3)
+        log["loss"].append(train_log["loss"])
+        log["iou"].append(train_log["iou"])
+        log["val_loss"].append(test_log["loss"])
+        log["val_iou"].append(test_log["iou"])
 
-        if epoch == 10:
-            if best_acc < 20:
-                continue_analog = False
-                break
+        pd.DataFrame(log).to_csv("models/NasSegNet/log.csv", index=False)
 
+        trigger += 1
 
-def analog_training(name, model, trainloader, testloader):
-    name = name + "_analog"
-    rpu_config = create_rpu_config()
-    model_analog = convert_to_analog_mapped(model, rpu_config)
-    # add this sequential to enable drift analog weights
-    model_analog = AnalogSequential(model_analog)
+        if test_log["iou"] > best_iou:
+            torch.save(model.state_dict(), "models/NasSegNet/model.pth")
+            best_iou = test_log["iou"]
+            print("=> saved best model")
+            trigger = 0
 
-    lr = 0.1
-    epochs = 200
-    model_analog.train()
-    model_analog.to(device)
-
-    optimizer = create_analog_optimizer(model_analog, lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50)
-    criterion = nn.CrossEntropyLoss().to(device)
-
-    for epoch in range(0, epochs):
-        train(model_analog, optimizer, criterion, epoch, trainloader, testloader)
-        test(name, model_analog, criterion, epoch, trainloader, testloader)
-        model_analog.remap_analog_weights()
-        scheduler.step()
+        # if epoch == 10:
+        #     if best_acc < 20:
+        #         continue_analog = False
+        #         break
 
 
-def train_config_unet(name, config):
+# def analog_training(name, model, trainloader, testloader):
+#     name = name + "_analog"
+#     rpu_config = create_rpu_config()
+#     model_analog = convert_to_analog_mapped(model, rpu_config)
+#     # add this sequential to enable drift analog weights
+#     model_analog = AnalogSequential(model_analog)
+
+#     lr = 0.1
+#     epochs = 200
+#     model_analog.train()
+#     model_analog.to(device)
+
+#     optimizer = create_analog_optimizer(model_analog, lr)
+#     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50)
+#     criterion = nn.CrossEntropyLoss().to(device)
+
+#     for epoch in range(0, epochs):
+#         train(model_analog, optimizer, criterion, epoch, trainloader, testloader)
+#         test(name, model_analog, criterion, epoch, trainloader, testloader)
+#         model_analog.remap_analog_weights()
+#         scheduler.step()
+
+
+def train_config_unet(config):
     trainloader, testloader = load_nuclei_dataset()
 
     best_acc = 0  # best test accuracy
@@ -278,7 +306,7 @@ def train_config_unet(name, config):
 
     net = Network(config)
 
-    digital_train(name, net, trainloader, testloader)
+    digital_train(net, trainloader, testloader)
     digital_acc = best_acc
 
     # best_acc = 0.0
@@ -291,22 +319,22 @@ def train_config_unet(name, config):
     # print(analog_acc)
 
 
-def train_config(name, config):
-    trainloader, testloader = load_cifar10(128)
+# def train_config(name, config):
+#     trainloader, testloader = load_cifar10(128)
 
-    best_acc = 0  # best test accuracy
-    start_epoch = 0  # start from epoch 0 or last checkpoint epoch
+#     best_acc = 0  # best test accuracy
+#     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
-    net = Network(config)
+#     net = Network(config)
 
-    digital_train(name, net, trainloader, testloader)
-    digital_acc = best_acc
+#     digital_train(name, net, trainloader, testloader)
+#     digital_acc = best_acc
 
-    best_acc = 0.0
-    start_epoch = 0
-    if continue_analog:
-        analog_training(name, net, trainloader, testloader)
-        analog_acc = best_acc
+#     best_acc = 0.0
+#     start_epoch = 0
+#     if continue_analog:
+#         analog_training(name, net, trainloader, testloader)
+#         analog_acc = best_acc
 
-    print(digital_acc)
-    print(analog_acc)
+#     print(digital_acc)
+#     print(analog_acc)

@@ -109,31 +109,80 @@ class SkipConnection(nn.Module):
 
 
 # Transposed convolution block for upsampling
-class TransposeConvBlock(nn.Module):
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        kernel_size=3,
-        stride=2,
-        padding=1,
-        output_padding=1,
-    ):
-        super(TransposeConvBlock, self).__init__()
-        self.tconv = nn.ConvTranspose2d(
+# class TransposeConvBlock(nn.Module):
+#     def __init__(
+#         self,
+#         in_channels,
+#         out_channels,
+#         kernel_size=3,
+#         stride=2,
+#         padding=1,
+#         output_padding=1,
+#     ):
+#         super(TransposeConvBlock, self).__init__()
+#         self.tconv = nn.ConvTranspose2d(
+#             in_channels,
+#             out_channels,
+#             kernel_size,
+#             stride,
+#             padding,
+#             output_padding,
+#             bias=False,
+#         )
+#         self.bn = nn.BatchNorm2d(out_channels)
+#         self.relu = nn.ReLU(inplace=True)
+
+#     def forward(self, x):
+#         return self.relu(self.bn(self.tconv(x)))
+
+
+class UpSampleBlock(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(UpSampleBlock, self).__init__()
+        # Learnable upsampling using ConvTranspose2d
+        self.upsample = nn.ConvTranspose2d(
             in_channels,
             out_channels,
-            kernel_size,
-            stride,
-            padding,
-            output_padding,
-            bias=False,
+            kernel_size=5,
+            stride=1,
+            padding=2,
+            output_padding=1,
         )
+        # Batch normalization to stabilize learning
         self.bn = nn.BatchNorm2d(out_channels)
+        # Activation function
         self.relu = nn.ReLU(inplace=True)
+        # Convolutional layer to adjust the channel depth to the number of segmentation classes
+        self.final_conv = nn.Conv2d(out_channels, 2, kernel_size=1)
 
     def forward(self, x):
-        return self.relu(self.bn(self.tconv(x)))
+        x = self.upsample(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        x = self.final_conv(x)
+
+
+class FinalUpsampleInterpolate(nn.Module):
+    def __init__(self, in_channels, intermediate_channels, num_classes):
+        super(FinalUpsampleInterpolate, self).__init__()
+        # Using Upsample for a precise increase in dimensions
+        self.upsample = nn.Upsample(size=(32, 32), mode="bilinear", align_corners=True)
+        # Convolutional layer to refine and set the appropriate number of channels
+        self.refine_conv = nn.Conv2d(
+            in_channels, intermediate_channels, kernel_size=3, padding=1
+        )
+        self.bn = nn.BatchNorm2d(intermediate_channels)
+        self.relu = nn.ReLU(inplace=True)
+        # Final convolution to get the correct number of class channels
+        self.final_conv = nn.Conv2d(intermediate_channels, num_classes, kernel_size=1)
+
+    def forward(self, x):
+        x = self.upsample(x)
+        x = self.refine_conv(x)
+        x = self.bn(x)
+        x = self.relu(x)
+        x = self.final_conv(x)
+        return x
 
 
 class BasicBlock(nn.Module):
@@ -198,9 +247,8 @@ class ResidualGroup(nn.Module):
 
 
 class Network(nn.Module):
-    def __init__(self, config, input_dim=(3, 32, 32), classes=10):
+    def __init__(self, config, input_dim=(3, 32, 32), classes=2):
         super(Network, self).__init__()
-        self.dim_dict = {}
         self.M = config["M"]
         self.residual_blocks = {
             "Group_1": config["R1"],
@@ -296,25 +344,16 @@ class Network(nn.Module):
             feature_maps_in = feature_maps_out
 
         self.feature_maps_out = feature_maps_out
-        self.blocks.add_module("ReLU_0", nn.ReLU(inplace=True))
-        self.blocks.add_module("AveragePool", nn.AvgPool2d(8, stride=1))
+
+        # self.blocks.add_module("ReLU_0", nn.ReLU(inplace=True))
+        # self.blocks.add_module("AveragePool", nn.AvgPool2d(8, stride=1))
 
         self.model.add_module("Main_blocks", self.blocks)
-        self.fc_len = functools.reduce(
-            operator.mul, list(self.blocks(torch.rand(1, *input_dim)).shape)
-        )
-
-        self.fc = nn.Linear(self.fc_len, classes)
+        # self.upsample = UpSampleBlock(self.feature_maps_out, 64)
+        self.upsample = FinalUpsampleInterpolate(self.feature_maps_out, 64, 1)
 
     def forward(self, x):
-        dimensions = []
         x = self.model(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)
-        for layer in self.layers:
-            input_dim = x.shape
-            x = layer(x)
-            output_dim = x.shape
-            dimensions.append((input_dim, output_dim))
-        self.dim_dict = {i: dims for i, dims in enumerate(dimensions)}
+        # Upsample
+        x = self.upsample(x)
         return x

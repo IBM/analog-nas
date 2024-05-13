@@ -42,6 +42,10 @@ from monai.transforms import (
     NormalizeIntensity,
 )
 
+from albumentations.augmentations import transforms
+from albumentations.core.composition import Compose, OneOf
+from albumentations.augmentations.geometric.rotate import RandomRotate90
+from albumentations.augmentations.geometric import Flip, Resize
 
 # def load_spleen():
 #     resource = "https://msd-for-monai.s3-us-west-2.amazonaws.com/Task09_Spleen.tar"
@@ -209,10 +213,10 @@ config = {
     "deep_supervision": False,
     "input_channels": 3,
     "num_classes": 1,
-    "input_w": 96,
-    "input_h": 96,
+    "input_w": 32,
+    "input_h": 32,
     "loss": "BCEDiceLoss",
-    "dataset": "dsb2018_96",
+    "dataset": "dsb2018_32",
     "img_ext": ".png",
     "mask_ext": ".png",
     "optimizer": "SGD",
@@ -233,7 +237,8 @@ config = {
 
 def load_nuclei_dataset():
     # Data loading code
-    img_ids = glob(os.path.join("../../inputs", "dsb2018_96", "images", "*" + ".png"))
+    print(os.getcwd())
+    img_ids = glob(os.path.join("inputs", "dsb2018_32", "images", "*" + ".png"))
     img_ids = [os.path.splitext(os.path.basename(p))[0] for p in img_ids]
 
     train_img_ids, val_img_ids = train_test_split(
@@ -242,38 +247,25 @@ def load_nuclei_dataset():
 
     train_transform = Compose(
         [
-            RandRotate90(
-                prob=0.5, spatial_axes=(0, 1)
-            ),  # Randomly rotates the images by 90 degrees with a default probability of 0.5
-            RandFlip(
-                prob=0.5, spatial_axis=0
-            ),  # Randomly flips the image along a given axis
+            RandomRotate90(),
+            Flip(),
             OneOf(
-                [  # Applies one of the transforms
-                    RandShiftIntensity(
-                        offsets=0.1, prob=1.0
-                    ),  # Randomly shifts intensity for brightness adjustment
-                    RandAdjustContrast(prob=1.0),  # Randomly changes contrast
-                    RandGaussianSharpen(prob=1.0),  # Randomly sharpens the image
-                ]
+                [
+                    transforms.HueSaturationValue(),
+                    # transforms.RandomBrightness(),
+                    # transforms.RandomContrast(),
+                ],
+                p=1,
             ),
-            Resize(
-                spatial_size=(config["input_h"], config["input_w"])
-            ),  # Resize images to a specified size
-            NormalizeIntensity(
-                nonzero=True, channel_wise=True
-            ),  # Normalize pixel values with channel-wise option
+            Resize(config["input_h"], config["input_w"]),
+            transforms.Normalize(),
         ]
     )
 
     val_transform = Compose(
         [
-            Resize(
-                spatial_size=(config["input_h"], config["input_w"])
-            ),  # Resize images to a specified size
-            NormalizeIntensity(
-                nonzero=True, channel_wise=True
-            ),  # Normalize pixel values with channel-wise option
+            Resize(config["input_h"], config["input_w"]),
+            transforms.Normalize(),
         ]
     )
 

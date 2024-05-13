@@ -93,14 +93,14 @@ class ConfigSpace:
     def set_hyperparameters(self):
         if self.search_space == "resnet-like":
             self.add_hyperparameter_range(
-                "out_channel0", "discrete", range=[16, 32, 48, 64]
+                "out_channel0", "discrete", range=[16, 32, 64]
             )
-            self.add_hyperparameter("M", "discrete", min_value=1, max_value=5)
-            self.add_hyperparameter("R1", "discrete", min_value=1, max_value=5)
-            self.add_hyperparameter("R2", "discrete", min_value=0, max_value=5)
-            self.add_hyperparameter("R3", "discrete", min_value=0, max_value=5)
-            self.add_hyperparameter("R4", "discrete", min_value=0, max_value=5)
-            self.add_hyperparameter("R5", "discrete", min_value=0, max_value=5)
+            self.add_hyperparameter("M", "discrete", min_value=1, max_value=3)
+            self.add_hyperparameter("R1", "discrete", min_value=1, max_value=3)
+            self.add_hyperparameter("R2", "discrete", min_value=0, max_value=3)
+            self.add_hyperparameter("R3", "discrete", min_value=0, max_value=3)
+            self.add_hyperparameter("R4", "discrete", min_value=0, max_value=3)
+            self.add_hyperparameter("R5", "discrete", min_value=0, max_value=3)
 
             for i in range(1, 6):
                 self.add_hyperparameter_range(
