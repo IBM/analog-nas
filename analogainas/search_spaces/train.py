@@ -18,7 +18,7 @@ from aihwkit.optim import AnalogSGD
 
 from analogainas.search_spaces.resnet_macro_architecture import Network
 from analogainas.search_spaces.dataloaders.dataloader import load_cifar10
-from analogainas.search_spaces.dataloaders.dataloader import load_unet
+from analogainas.search_spaces.dataloaders.dataloader import load_nuclei_dataset
 
 from monai.metrics import DiceMetric
 from monai.losses import DiceLoss
@@ -29,14 +29,33 @@ from monai.transforms import (
     Compose,
 )
 
-continue_analog = True
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+from tqdm import tqdm
+from collections import OrderedDict
 
-def create_rpu_config(g_max=25,
-                      tile_size=256,
-                      dac_res=256,
-                      adc_res=256,
-                      noise_std=5.0):
+continue_analog = True
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+
+class AverageMeter(object):
+    """Computes and stores the average and current value"""
+
+    def __init__(self):
+        self.reset()
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count
+
+
+def create_rpu_config(g_max=25, tile_size=256, dac_res=256, adc_res=256, noise_std=5.0):
     rpu_config = InferenceRPUConfig()
 
     rpu_config.clip.type = WeightClipType.FIXED_VALUE
@@ -55,8 +74,8 @@ def create_rpu_config(g_max=25,
     rpu_config.mapping.learn_out_scaling_alpha = True
 
     rpu_config.forward = PresetIOParameters()
-    rpu_config.forward.inp_res = 1/dac_res  # 8-bit DAC discretization.
-    rpu_config.forward.out_res = 1/adc_res  # 8-bit ADC discretization.
+    rpu_config.forward.inp_res = 1 / dac_res  # 8-bit DAC discretization.
+    rpu_config.forward.out_res = 1 / adc_res  # 8-bit ADC discretization.
     rpu_config.forward.bound_management = BoundManagementType.NONE
 
     # Inference noise model.
@@ -74,128 +93,121 @@ def create_analog_optimizer(model, lr):
     return optimizer
 
 
-def train(model, optimizer, criterion, epoch, trainloader, epoch_loss_values):
-    # print('\nEpoch: %d' % epoch)
-    # model.train()
-    # train_loss = 0
-    # correct = 0
-    # total = 0
-    # for batch_idx, (inputs, targets) in enumerate(trainloader):
-    #     inputs, targets = inputs.to(device), targets.to(device)
-    #     optimizer.zero_grad()
-    #     outputs = model(inputs)
-    #     loss = criterion(outputs, targets)
-    #     loss.backward()
-    #     optimizer.step()
+# IOU Score and DICE Coefficients
+import numpy as np
+import torch
+import torch.nn.functional as F
 
-    #     train_loss += loss.item()
-    #     _, predicted = outputs.max(1)
-    #     total += targets.size(0)
-    #     correct += predicted.eq(targets).sum().item()
 
-    #     print(batch_idx, len(trainloader),
-    #           ' Loss: %.3f | Acc: %.3f%% (%d/%d)'
-    #           % (train_loss/(batch_idx+1),
-    #              100.*correct/total, correct, total))
-    
-    print("-" * 10)
-    print('\nEpoch: %d' % epoch)
-    model.train()
-    epoch_loss = 0
-    step = 0
-    for batch_data in trainloader:
-        step += 1
-        inputs, labels = (
-            batch_data["image"].to(device),
-            batch_data["label"].to(device),
+def iou_score(output, target):
+    smooth = 1e-5
+
+    if torch.is_tensor(output):
+        output = torch.sigmoid(output).data.cpu().numpy()
+    if torch.is_tensor(target):
+        target = target.data.cpu().numpy()
+    output_ = output > 0.5
+    target_ = target > 0.5
+    intersection = (output_ & target_).sum()
+    union = (output_ | target_).sum()
+
+    return (intersection + smooth) / (union + smooth)
+
+
+# Loss Functions for Segmentation
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
+class BCEDiceLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, input, target):
+        bce = F.binary_cross_entropy_with_logits(input, target)
+        smooth = 1e-5
+        input = torch.sigmoid(input)
+        num = target.size(0)
+        input = input.view(num, -1)
+        target = target.view(num, -1)
+        intersection = input * target
+        dice = (2.0 * intersection.sum(1) + smooth) / (
+            input.sum(1) + target.sum(1) + smooth
         )
+        dice = 1 - dice.sum() / num
+        return 0.5 * bce + dice
+
+
+def train(train_loader, model, criterion, optimizer):
+    avg_meters = {"loss": AverageMeter(), "iou": AverageMeter()}
+
+    model.train()
+
+    pbar = tqdm(total=len(train_loader))
+    for input, target, _ in train_loader:
+        input = input.cuda()
+        target = target.cuda()
+
+        output = model(input)
+
+        loss = criterion(output, target)
+        iou = iou_score(output, target)
+
+        # compute gradient and do optimizing step
         optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        epoch_loss += loss.item()
-        # print(f"{step}/{len(train_ds) // train_loader.batch_size}, " f"train_loss: {loss.item():.4f}")
-    epoch_loss /= step
-    epoch_loss_values.append(epoch_loss)
-    print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
 
+        avg_meters["loss"].update(loss.item(), input.size(0))
+        avg_meters["iou"].update(iou, input.size(0))
 
-def test(name, model, criterion, epoch, testloader, dice_metric, metric_values):
-    global best_acc
-    # model.eval()
-    # test_loss = 0
-    # correct = 0
-    # total = 0
-    # with torch.no_grad():
-    #     for batch_idx, (inputs, targets) in enumerate(testloader):
-    #         inputs, targets = inputs.to(device), targets.to(device)
-    #         outputs = model(inputs)
-    #         loss = criterion(outputs, targets)
-
-    #         test_loss += loss.item()
-    #         _, predicted = outputs.max(1)
-    #         total += targets.size(0)
-    #         correct += predicted.eq(targets).sum().item()
-
-    #         print(batch_idx, len(testloader),
-    #               'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-    #               % (test_loss/(batch_idx+1),
-    #                  100.*correct/total,
-    #                  correct,
-    #                  total))
-
-    # # Save checkpoint.
-    # acc = 100.*correct/total
-    # if acc > best_acc:
-    #     print('Saving..')
-    #     state = {
-    #         'net': model.state_dict(),
-    #         'acc': acc,
-    #         'epoch': epoch,
-    #     }
-    #     torch.save(state, './{}.pth'.format(name))
-    #     best_acc = acc
-
-    post_pred = Compose([AsDiscrete(argmax=True, to_onehot=2)])
-    post_label = Compose([AsDiscrete(to_onehot=2)])
-
-    model.eval()
-    with torch.no_grad():
-        for val_data in testloader:
-            val_inputs, val_labels = (
-                val_data["image"].to(device),
-                val_data["label"].to(device),
-            )
-            roi_size = (160, 160, 160)
-            sw_batch_size = 4
-            val_outputs = sliding_window_inference(val_inputs, roi_size, sw_batch_size, model)
-            val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
-            val_labels = [post_label(i) for i in decollate_batch(val_labels)]
-            # compute metric for current iteration
-            dice_metric(y_pred=val_outputs, y=val_labels)
-
-        # aggregate the final mean dice result
-        metric = dice_metric.aggregate().item()
-        # reset the status for next validation round
-        dice_metric.reset()
-
-        metric_values.append(metric)
-        if metric > best_acc:
-            best_acc = metric
-            best_metric_epoch = epoch + 1
-            state = {
-                'net': model.state_dict(),
-                'acc': metric,
-                'epoch': best_metric_epoch,
-            }
-            torch.save(state, './{}.pth'.format(name))
-            print("Saved new best metric model")
-        print(
-            f"current epoch: {epoch + 1} current mean dice: {metric:.4f}"
-            f"\nbest mean dice: {best_acc:.4f} "
-            f"at epoch: {best_metric_epoch}"
+        postfix = OrderedDict(
+            [
+                ("loss", avg_meters["loss"].avg),
+                ("iou", avg_meters["iou"].avg),
+            ]
         )
+        pbar.set_postfix(postfix)
+        pbar.update(1)
+    pbar.close()
+    print(
+        OrderedDict([("loss", avg_meters["loss"].avg), ("iou", avg_meters["iou"].avg)])
+    )
+
+
+def test(val_loader, model, criterion):
+    global best_acc
+    avg_meters = {"loss": AverageMeter(), "iou": AverageMeter()}
+
+    # switch to evaluate mode
+    model.eval()
+
+    with torch.no_grad():
+        pbar = tqdm(total=len(val_loader))
+        for input, target, _ in val_loader:
+            input = input.cuda()
+            target = target.cuda()
+
+            output = model(input)
+            loss = criterion(output, target)
+            iou = iou_score(output, target)
+
+            avg_meters["loss"].update(loss.item(), input.size(0))
+            avg_meters["iou"].update(iou, input.size(0))
+
+            postfix = OrderedDict(
+                [
+                    ("loss", avg_meters["loss"].avg),
+                    ("iou", avg_meters["iou"].avg),
+                ]
+            )
+            pbar.set_postfix(postfix)
+            pbar.update(1)
+        pbar.close()
+    print(
+        OrderedDict([("loss", avg_meters["loss"].avg), ("iou", avg_meters["iou"].avg)])
+    )
 
 
 def digital_train(name, model, trainloader, testloader):
@@ -207,14 +219,8 @@ def digital_train(name, model, trainloader, testloader):
         # cudnn.benchmark = True
 
     print(torch.cuda.is_available())
-    # lr = 0.05
 
-    # criterion = nn.CrossEntropyLoss().to(device)
-    # optimizer = optim.SGD(model.parameters(), lr=lr,
-    #                       momentum=0.9, weight_decay=5e-4)
-    # scheduler = CosineAnnealingLR(optimizer, T_max=400)
-
-    criterion = DiceLoss(to_onehot_y=True, softmax=True)
+    criterion = BCEDiceLoss()
     optimizer = torch.optim.Adam(model.parameters(), 1e-4)
     scheduler = CosineAnnealingLR(optimizer, T_max=400)
     dice_metric = DiceMetric(include_background=False, reduction="mean")
@@ -222,8 +228,17 @@ def digital_train(name, model, trainloader, testloader):
     epoch_loss_values = []
 
     for epoch in range(400):
-        train(model, optimizer, criterion, epoch, trainloader, epoch_loss_values)
-        test(name, model, criterion, epoch, trainloader, testloader, dice_metric, metric_values)
+        train(trainloader, model, criterion, optimizer)
+        test(
+            name,
+            model,
+            epoch,
+            trainloader,
+            testloader,
+            dice_metric,
+            metric_values,
+            criterion,
+        )
         scheduler.step()
 
         if epoch == 10:
@@ -249,17 +264,16 @@ def analog_training(name, model, trainloader, testloader):
     criterion = nn.CrossEntropyLoss().to(device)
 
     for epoch in range(0, epochs):
-        train(model_analog, optimizer, criterion,
-              epoch, trainloader, testloader)
-        test(name, model_analog, criterion,
-             epoch, trainloader, testloader)
+        train(model_analog, optimizer, criterion, epoch, trainloader, testloader)
+        test(name, model_analog, criterion, epoch, trainloader, testloader)
         model_analog.remap_analog_weights()
         scheduler.step()
 
-def train_config_unet(name, config):
-    trainloader, testloader = load_unet()
 
-    best_acc = 0     # best test accuracy
+def train_config_unet(name, config):
+    trainloader, testloader = load_nuclei_dataset()
+
+    best_acc = 0  # best test accuracy
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
     net = Network(config)
@@ -280,7 +294,7 @@ def train_config_unet(name, config):
 def train_config(name, config):
     trainloader, testloader = load_cifar10(128)
 
-    best_acc = 0     # best test accuracy
+    best_acc = 0  # best test accuracy
     start_epoch = 0  # start from epoch 0 or last checkpoint epoch
 
     net = Network(config)
