@@ -94,12 +94,8 @@ class MLPEvaluator(Evaluator):
         self.mean = np.mean(ytrain)
         self.std = np.std(ytrain)
 
-<<<<<<< HEAD
-        # TODO: Add encoding 
-=======
         scaler = StandardScaler()
         _xtrain = scaler.fit_transform(xtrain)
->>>>>>> public/main
 
         _xtrain = xtrain
         _ytrain = np.array(ytrain)
