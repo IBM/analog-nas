@@ -17,6 +17,13 @@ class AutoEncoderConfigSpace(BaseConfigSpace):
         self.set_hyperparameters()
 
     def sample_arch_uniformly(self, n):
+        archs = []
+        for i in range(n):
+            tmp = self.sample_arch()
+            archs.append(tmp)
+        return archs
+
+    def set_hyperparameters(self):
         self.add_hyperparameter_range("embedding_dim", "discrete", [16, 32, 64, 128, 256, 512, 1024, 2048])
 
         # 3 Blocks of variable number of conv layers of varying configs and sizes
@@ -57,7 +64,3 @@ class AutoEncoderConfigSpace(BaseConfigSpace):
         self.add_hyperparameter_range("decoder_convblock3_kernel_size", "discrete", [3, 5, 7])
         self.add_hyperparameter_range("decoder_convblock3_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
         self.add_hyperparameter_range("decoder_convblock3_stride", "discrete", [1, 2])
-
-
-    def set_hyperparameters(self):
-        raise Exception("Not implemented")
