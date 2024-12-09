@@ -17,7 +17,47 @@ class AutoEncoderConfigSpace(BaseConfigSpace):
         self.set_hyperparameters()
 
     def sample_arch_uniformly(self, n):
-        raise Exception("Not implemented")
+        self.add_hyperparameter_range("embedding_dim", "discrete", [16, 32, 64, 128, 256, 512, 1024, 2048])
+
+        # 3 Blocks of variable number of conv layers of varying configs and sizes
+
+        # Block 1
+        self.add_hyperparameter("encoder_convblock1_depth", "discrete", min_value=1, max_value=5)
+        self.add_hyperparameter_range("encoder_convblock1_kernel_size", "discrete", [3, 5, 7])
+        self.add_hyperparameter_range("encoder_convblock1_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
+        self.add_hyperparameter_range("encoder_convblock1_stride", "discrete", [1, 2])
+
+        # Encoder Block 2
+        self.add_hyperparameter("encoder_convblock2_depth", "discrete", min_value=1, max_value=5)
+        self.add_hyperparameter_range("encoder_convblock2_kernel_size", "discrete", [3, 5, 7])
+        self.add_hyperparameter_range("encoder_convblock2_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
+        self.add_hyperparameter_range("encoder_convblock2_stride", "discrete", [1, 2])
+
+        # Encoder Block 3
+        self.add_hyperparameter("encoder_convblock3_depth", "discrete", min_value=1, max_value=5)
+        self.add_hyperparameter_range("encoder_convblock3_kernel_size", "discrete", [3, 5, 7])
+        self.add_hyperparameter_range("encoder_convblock3_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
+        self.add_hyperparameter_range("encoder_convblock3_stride", "discrete", [1, 2])
+
+        # Decoder Block 1
+        self.add_hyperparameter("decoder_convblock1_depth", "discrete", min_value=1, max_value=5)
+        self.add_hyperparameter_range("decoder_convblock1_kernel_size", "discrete", [3, 5, 7])
+        self.add_hyperparameter_range("decoder_convblock1_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
+        self.add_hyperparameter_range("decoder_convblock1_stride", "discrete", [1, 2])
+
+        # Decoder Block 2
+        self.add_hyperparameter("decoder_convblock2_depth", "discrete", min_value=1, max_value=5)
+        self.add_hyperparameter_range("decoder_convblock2_kernel_size", "discrete", [3, 5, 7])
+        self.add_hyperparameter_range("decoder_convblock2_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
+        self.add_hyperparameter_range("decoder_convblock2_stride", "discrete", [1, 2])
+
+
+        # Decoder Block 3
+        self.add_hyperparameter("decoder_convblock3_depth", "discrete", min_value=1, max_value=5)
+        self.add_hyperparameter_range("decoder_convblock3_kernel_size", "discrete", [3, 5, 7])
+        self.add_hyperparameter_range("decoder_convblock3_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
+        self.add_hyperparameter_range("decoder_convblock3_stride", "discrete", [1, 2])
+
 
     def set_hyperparameters(self):
         raise Exception("Not implemented")
