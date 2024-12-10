@@ -1,4 +1,5 @@
 """Hyperparameter Configuration Space."""
+
 from analogainas.search_spaces.config_space.interface.config_space import ConfigSpace
 
 from analogainas.search_spaces.config_space.base_config_space import BaseConfigSpace
@@ -8,6 +9,7 @@ class AutoEncoderConfigSpace(BaseConfigSpace):
     """
     This class defines the search space.
     """
+
     def __init__(self, dataset="CIFAR-10"):
         # initialize super
         super().__init__("autoencoder-like", dataset)
@@ -57,7 +59,6 @@ class AutoEncoderConfigSpace(BaseConfigSpace):
         self.add_hyperparameter_range("decoder_convblock2_kernel_size", "discrete", [3, 5, 7])
         self.add_hyperparameter_range("decoder_convblock2_filters", "discrete", [8, 16, 32, 64, 128, 256, 512])
         self.add_hyperparameter_range("decoder_convblock2_stride", "discrete", [1, 2])
-
 
         # Decoder Block 3
         self.add_hyperparameter("decoder_convblock3_depth", "discrete", min_value=1, max_value=5)
