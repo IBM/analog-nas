@@ -216,3 +216,112 @@ class Network(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
+
+
+class ImageNetNetwork(nn.Module):
+    def __init__(self, config, input_dim=(3, 224, 224), classes=1000):
+        super(ImageNetNetwork, self).__init__()
+
+        self.M = config["M"]
+        self.residual_blocks = {
+            "Group_1": config["R1"],
+            "Group_2": config["R2"],
+            "Group_3": config["R3"],
+            "Group_4": config["R4"],
+            "Group_5": config["R5"],
+        }
+
+        self.widen_factors = {
+            "Group_1": config["widenfact1"],
+            "Group_2": config["widenfact2"],
+            "Group_3": config["widenfact3"],
+            "Group_4": config["widenfact4"],
+            "Group_5": config["widenfact5"],
+        }
+
+        self.res_branches = {
+            "Group_1": config["B1"],
+            "Group_2": config["B2"],
+            "Group_3": config["B3"],
+            "Group_4": config["B4"],
+            "Group_5": config["B5"],
+        }
+
+        self.conv_blocks = {
+            "Group_1": config["convblock1"],
+            "Group_2": config["convblock2"],
+            "Group_3": config["convblock3"],
+            "Group_4": config["convblock4"],
+            "Group_5": config["convblock5"],
+        }
+
+        self.filters_size = {"Group_1": 3, "Group_2": 3, "Group_3": 3, "Group_4": 3, "Group_5": 3}
+
+        self.model = nn.Sequential()
+        block = BasicBlock
+        self.blocks = nn.Sequential()
+
+        # starting dim = 224x224
+        self.blocks.add_module(
+            "Conv_0", nn.Conv2d(3, config["out_channel0"], kernel_size=7, stride=2, padding=3, bias=False)
+        )
+        self.blocks.add_module("BN_0", nn.BatchNorm2d(config["out_channel0"]))
+        self.blocks.add_module("ReLU_0", nn.ReLU(inplace=True))
+        self.blocks.add_module("MaxPool_0", nn.MaxPool2d(kernel_size=3, stride=2, padding=1))  # -> 56x56
+        # dim (B, out_channel0, 56, 56)
+
+        feature_maps_in = int(round(config["out_channel0"] // self.widen_factors["Group_1"]))
+
+        # Group_1 (no further downsample here, stride=1)
+        self.blocks.add_module(
+            "Group_1",
+            ResidualGroup(
+                block,
+                config["out_channel0"],
+                feature_maps_in,
+                self.residual_blocks["Group_1"],
+                self.filters_size["Group_1"],
+                self.res_branches["Group_1"],
+                stride=1,  # Keep first group stride=1 for no downsampling
+            ),
+        )
+
+        # downsample the groups for resnet feature extraction
+        feature_maps_out = feature_maps_in
+        for m in range(2, self.M + 1):
+            feature_maps_out = int(round(feature_maps_in // self.widen_factors["Group_{}".format(m)]))
+            if m in [2, 3, 4]:
+                group_stride = 2
+            else:
+                group_stride = 1
+
+            self.blocks.add_module( # TODO maybe change to fstring at some point
+                "Group_{}".format(m),
+                ResidualGroup(
+                    block,
+                    feature_maps_in,
+                    feature_maps_out,
+                    self.residual_blocks["Group_{}".format(m)],
+                    self.filters_size["Group_{}".format(m)],
+                    self.res_branches["Group_{}".format(m)],
+                    stride=group_stride,
+                ),
+            )
+            feature_maps_in = feature_maps_out
+
+        self.feature_maps_out = feature_maps_out
+
+        self.blocks.add_module("ReLU_1", nn.ReLU(inplace=True))
+
+        # Instead of a fixed average pool (which was for CIFAR), we use adaptive pooling to get a fixed 1x1 spatial dimension.
+        self.blocks.add_module("AdaptivePool", nn.AdaptiveAvgPool2d((1, 1)))
+
+        self.model.add_module("Main_blocks", self.blocks)
+
+        # Determine the final size of the flattened features
+        # This will just be (1, feature_maps_out, 1, 1) after adaptive pooling = feature_maps_out
+        # but we keep the same logic as in the CIFAR version for consistency.
+        dummy_out = self.blocks(torch.rand(1, *input_dim))
+        self.fc_len = functools.reduce(operator.mul, list(dummy_out.shape))
+
+        self.fc = nn.Linear(self.fc_len, classes)
