@@ -1,7 +1,5 @@
 """Hyperparameter Configuration Space."""
 
-from analogainas.search_spaces.config_space.interface.config_space import ConfigSpace
-
 from analogainas.search_spaces.config_space.base_config_space import BaseConfigSpace
 
 
