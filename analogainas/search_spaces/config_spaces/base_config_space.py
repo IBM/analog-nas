@@ -2,7 +2,7 @@
 import numpy as np
 import random
 
-from analogainas.search_spaces.config_space.interface.config_space import ConfigSpace
+from analogainas.search_spaces.config_spaces.interface.config_space import ConfigSpace
 
 
 class Hyperparameter:

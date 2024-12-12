@@ -1,6 +1,6 @@
 """Hyperparameter Configuration Space."""
 
-from analogainas.search_spaces.config_space.base_config_space import BaseConfigSpace
+from analogainas.search_spaces.config_spaces.base_config_space import BaseConfigSpace
 
 
 class AutoEncoderConfigSpace(BaseConfigSpace):
