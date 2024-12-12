@@ -6,10 +6,6 @@ from analogainas.search_spaces.config_space.base_config_space import BaseConfigS
 
 
 class AutoEncoderConfigSpace(BaseConfigSpace):
-    """
-    This class defines the search space.
-    """
-
     def __init__(self, dataset="CIFAR-10"):
         # initialize super
         super().__init__("autoencoder-like", dataset)
