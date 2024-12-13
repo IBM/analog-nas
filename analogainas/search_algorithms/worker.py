@@ -8,13 +8,15 @@ from analogainas.search_spaces.resnet_macro_architecture import Network
 
 """Wrapper class to launch NAS search."""
 class Worker():
-    def __init__(self, 
+    def __init__(self,
+                 network_factory: Network,
                  cs: ConfigSpace=None,
                  eval = None,
                  optimizer=None,
                  runs=5,
                  max_budget=1,
                  n_iter=100):
+        self.network_factory = network_factory
         self.max_budget = max_budget
         self.n_iter = n_iter
         self.config_space = cs
@@ -27,7 +29,7 @@ class Worker():
 
     @property 
     def best_arch(self):
-        return Network(self.best_config)
+        return self.network_factory(self.best_config)
 
     def search(self):
         if os.path.exists("results"):
