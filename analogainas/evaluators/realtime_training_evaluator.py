@@ -48,7 +48,7 @@ class RealtimeTrainingEvaluator():
         for epoch in range(self.epochs):
             # Training
             model.train()
-            for i, (inputs, targets) in enumerate(self.dataloader):
+            for i, (inputs, targets) in enumerate(self.train_dataloader):
                 outputs = model(inputs)
                 loss = self.criterion(outputs, targets)
                 loss.backward()
