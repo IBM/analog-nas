@@ -66,6 +66,8 @@ class RealtimeTrainingEvaluator():
             model.eval()
             with torch.no_grad():
                 for i, (inputs, targets) in enumerate(self.val_dataloader):
+                    inputs, targets = inputs.to(device), targets.to(device)
+
                     outputs = model(inputs)
                     loss = self.criterion(outputs, targets)
 
