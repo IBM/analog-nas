@@ -18,7 +18,7 @@ from aihwkit.optim import AnalogSGD
 from aihwkit.nn import AnalogLinear
 from aihwkit.simulator.rpu_base import cuda
 from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
-from aihwkit.inference.noise.pcm import CustomDriftPCMLikeNoiseModel
+from aihwkit.inference.noise.pcm import PCMLikeNoiseModel
 from aihwkit.simulator.parameters.enums import BoundManagementType
 from aihwkit.simulator.parameters.io import IOParameters
 from aihwkit.simulator.configs import TorchInferenceRPUConfig
@@ -28,18 +28,19 @@ from analogainas.search_spaces.resnet_macro_architecture import Network
 from analogainas.search_spaces.dataloaders.dataloader import load_cifar10
 
 def create_noise_model():
-    g_min, g_max = 0.0, 25.
-    custom_drift_model = dict(g_lst=[g_min, 10., g_max],
-                              nu_mean_lst=[0.08, 0.05, 0.03],
-                              nu_std_lst=[0.03, 0.02, 0.01])
-
-    noise_model = CustomDriftPCMLikeNoiseModel(custom_drift_model,
-                                               prog_noise_scale=0.0,   # turn off to show drift only
-                                               read_noise_scale=0.0,   # turn off to show drift only
-                                               drift_scale=1.0,
-                                               g_converter=SinglePairConductanceConverter(g_min=g_min,
-                                                                                          g_max=g_max),
-                                               )
+    # g_min, g_max = 0.0, 25.
+    # custom_drift_model = dict(g_lst=[g_min, 10., g_max],
+    #                           nu_mean_lst=[0.08, 0.05, 0.03],
+    #                           nu_std_lst=[0.03, 0.02, 0.01])
+    #
+    # noise_model = CustomDriftPCMLikeNoiseModel(custom_drift_model,
+    #                                            prog_noise_scale=0.0,   # turn off to show drift only
+    #                                            read_noise_scale=0.0,   # turn off to show drift only
+    #                                            drift_scale=1.0,
+    #                                            g_converter=SinglePairConductanceConverter(g_min=g_min,
+    #                                                                                       g_max=g_max),
+    #                                            )
+    noise_model = PCMLikeNoiseModel()
     return noise_model
 
 def create_rpu_config(g_max=25,
