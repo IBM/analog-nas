@@ -39,10 +39,10 @@ transform = transforms.Compose([
 ])
 
 train_mnist_dataset = AutoEncoderStructuredDataset(torchvision.datasets.MNIST(root='./data', train=True, transform=transform, download=True))
-train_dataloader = DataLoader(train_mnist_dataset, batch_size=8, shuffle=True)
+train_dataloader = DataLoader(train_mnist_dataset, batch_size=64, shuffle=True)
 
 test_mnist_dataset = AutoEncoderStructuredDataset(torchvision.datasets.MNIST(root='./data', train=False, transform=transform, download=True))
-test_dataloader = DataLoader(test_mnist_dataset, batch_size=8, shuffle=True)
+test_dataloader = DataLoader(test_mnist_dataset, batch_size=64, shuffle=True)
 
 criterion = nn.MSELoss()
 evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion)
