@@ -37,8 +37,11 @@ class RealtimeTrainingEvaluator():
 
     @lru_cache(maxsize=32)
     def _get_trained_model(self, model_arch):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model_arch = self._arch_string_to_dict[str(model_arch)]
         model = self.model_factory(model_arch)
+
+        model = model.to(device)
         training_losses = []
         validation_losses = []
         patience_counter = 0
@@ -49,6 +52,8 @@ class RealtimeTrainingEvaluator():
             # Training
             model.train()
             for i, (inputs, targets) in enumerate(self.train_dataloader):
+                inputs, targets = inputs.to(device), targets.to(device)
+
                 outputs = model(inputs)
                 loss = self.criterion(outputs, targets)
                 loss.backward()
@@ -71,7 +76,7 @@ class RealtimeTrainingEvaluator():
             if patience_counter >= self.patience:
                 break
         print(f'Done training: {model_arch}')
-
+        model.to(torch.device("cpu"))
         return model, training_losses, validation_losses
 
     @lru_cache(maxsize=32)
