@@ -78,7 +78,7 @@ class RealtimeTrainingEvaluator():
     def _get_estimates(self, architecture):
         # Need to swap with metric agnostic version
         architecture = self._arch_string_to_dict[str(architecture)]
-        model, training_losses, validation_losses = self._get_trained_model(architecture)
+        model, training_losses, validation_losses = self._get_trained_model(str(architecture))
 
         analog_model = model.to(torch.device("cpu"))
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=create_rpu_config())
