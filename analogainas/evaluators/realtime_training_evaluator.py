@@ -22,7 +22,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
-class RealtimeTrainingEvaluator(Evaluator):
+class RealtimeTrainingEvaluator():
     def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=10, patience=4, patience_threshold=0.01):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
