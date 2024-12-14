@@ -37,9 +37,6 @@ class RealtimeTrainingEvaluator():
     @lru_cache(maxsize=32)
     def _get_trained_model(self, model_arch):
         model = self.model_factory(model_arch)
-        rpu_config = create_rpu_config()
-        model = convert_to_analog_mapped(model, rpu_config)
-        model = AnalogSequential(model)
         training_losses = []
         validation_losses = []
         patience_counter = 0
@@ -76,28 +73,32 @@ class RealtimeTrainingEvaluator():
 
     @lru_cache(maxsize=32)
     def _get_estimates(self, architecture):
+        # Need to swap with metric agnostic version
         model, training_losses, validation_losses = self._get_trained_model(architecture)
 
-        trained_model = trained_model.drift_analog_weights(ONE_DAY)
+        analog_model = model.to(torch.device("cpu"))
+        analog_model = convert_to_analog_mapped(analog_model, rpu_config=create_rpu_config())
 
-        trained_model.eval()
+        analog_model = analog_model.drift_analog_weights(ONE_DAY)
+
+        analog_model.eval()
         day_1_losses = []
 
         with torch.no_grad():
             for i, (inputs, targets) in enumerate(self.test_dataloader):
-                outputs = trained_model(inputs)
+                outputs = analog_model(inputs)
                 loss = self.criterion(outputs, targets)
 
                 day_1_losses.append(loss.item())
 
-        trained_model = trained_model.drift_analog_weights(ONE_MONTH)
+        analog_model = analog_model.drift_analog_weights(ONE_MONTH)
 
-        trained_model.eval()
+        analog_model.eval()
         month_1_losses = []
 
         with torch.no_grad():
             for i, (inputs, targets) in enumerate(self.test_dataloader):
-                outputs = trained_model(inputs)
+                outputs = analog_model(inputs)
                 loss = self.criterion(outputs, targets)
 
                 month_1_losses.append(loss.item())
