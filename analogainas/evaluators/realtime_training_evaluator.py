@@ -49,6 +49,7 @@ class RealtimeTrainingEvaluator():
         optimizer = create_analog_optimizer(model, self.lr)
 
         for epoch in range(self.epochs):
+            print(epoch)
             # Training
             model.train()
             for i, (inputs, targets) in enumerate(self.train_dataloader):
