@@ -82,10 +82,10 @@ class AutoEncoder(nn.Module):
             # kernel_size = config[f"decoder_convblock{i}_kernel_size"]
             # filters = config[f"decoder_convblock{i}_filters"]
             # stride = config[f"decoder_convblock{i}_stride"]
-            depth = config[f"encoder_convblock{3-i}_depth"]
-            kernel_size = config[f"encoder_convblock{3-i}_kernel_size"]
-            filters = config[f"encoder_convblock{3-i}_filters"]
-            stride = config[f"encoder_convblock{3-i}_stride"]
+            depth = config[f"encoder_convblock{5-i}_depth"]
+            kernel_size = config[f"encoder_convblock{5-i}_kernel_size"]
+            filters = config[f"encoder_convblock{5-i}_filters"]
+            stride = config[f"encoder_convblock{5-i}_stride"]
 
             decoder_blocks.append(
                 DeconvBlock(
