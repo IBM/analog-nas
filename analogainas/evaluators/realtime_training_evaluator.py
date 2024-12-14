@@ -33,9 +33,11 @@ class RealtimeTrainingEvaluator():
         self.epochs = epochs
         self.patience = patience
         self.patience_threshold = patience_threshold
+        self._arch_string_to_dict = {}
 
     @lru_cache(maxsize=32)
     def _get_trained_model(self, model_arch):
+        model_arch = self._arch_string_to_dict[str(model_arch)]
         model = self.model_factory(model_arch)
         training_losses = []
         validation_losses = []
@@ -74,6 +76,7 @@ class RealtimeTrainingEvaluator():
     @lru_cache(maxsize=32)
     def _get_estimates(self, architecture):
         # Need to swap with metric agnostic version
+        architecture = self._arch_string_to_dict[str(architecture)]
         model, training_losses, validation_losses = self._get_trained_model(architecture)
 
         analog_model = model.to(torch.device("cpu"))
@@ -111,7 +114,8 @@ class RealtimeTrainingEvaluator():
         # This needs to take in a list of size 1 and returns a tuple of f32 np arrays
         # First output is day 1 measure of performance, second is AVM and isn't used in this repo (query_pop use the second output)
         architecture = architecture[0]
-        model, training_losses, validation_losses = self._get_trained_model(architecture)
+        self._arch_string_to_dict[str(architecture)] = architecture
+        model, training_losses, validation_losses = self._get_trained_model(str(architecture))
 
         day_1_losses, month_1_losses = self._get_estimates(architecture)
         avg_day_1_loss = sum(day_1_losses) / len(day_1_losses)
