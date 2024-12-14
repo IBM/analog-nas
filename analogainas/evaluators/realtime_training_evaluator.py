@@ -38,6 +38,8 @@ class RealtimeTrainingEvaluator():
     @lru_cache(maxsize=32)
     def _get_trained_model(self, model_arch):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f'Training: {model_arch}')
+        print(f'Device: {device}')
         model_arch = self._arch_string_to_dict[str(model_arch)]
         model = self.model_factory(model_arch)
 
@@ -62,6 +64,8 @@ class RealtimeTrainingEvaluator():
                 optimizer.zero_grad()
 
                 training_losses.append(loss.item())
+
+                print(f'Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
 
             # Validation
             model.eval()
