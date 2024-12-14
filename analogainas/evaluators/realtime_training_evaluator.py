@@ -70,6 +70,7 @@ class RealtimeTrainingEvaluator():
                 patience_counter += 1
             if patience_counter >= self.patience:
                 break
+        print(f'Done training: {model_arch}')
 
         return model, training_losses, validation_losses
 
@@ -115,7 +116,7 @@ class RealtimeTrainingEvaluator():
         # First output is day 1 measure of performance, second is AVM and isn't used in this repo (query_pop use the second output)
         architecture = architecture[0]
         self._arch_string_to_dict[str(architecture)] = architecture
-        model, training_losses, validation_losses = self._get_trained_model(str(architecture))
+        #model, training_losses, validation_losses = self._get_trained_model(str(architecture))
 
         day_1_losses, month_1_losses = self._get_estimates(architecture)
         avg_day_1_loss = sum(day_1_losses) / len(day_1_losses)
