@@ -23,7 +23,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
 class RealtimeTrainingEvaluator():
-    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=10, patience=4, patience_threshold=0.01):
+    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, patience_threshold=0.01):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -118,7 +118,7 @@ class RealtimeTrainingEvaluator():
         self._arch_string_to_dict[str(architecture)] = architecture
         #model, training_losses, validation_losses = self._get_trained_model(str(architecture))
 
-        day_1_losses, month_1_losses = self._get_estimates(architecture)
+        day_1_losses, month_1_losses = self._get_estimates(str(architecture))
         avg_day_1_loss = sum(day_1_losses) / len(day_1_losses)
         avg_month_1_loss = sum(month_1_losses) / len(month_1_losses)
 
