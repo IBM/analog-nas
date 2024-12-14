@@ -55,6 +55,8 @@ class RealtimeTrainingEvaluator():
             # Training
             model.train()
             for i, (inputs, targets) in enumerate(self.train_dataloader):
+                print(f"Input shape: {inputs.shape}")
+                print(f"Target shape: {targets.shape}")
                 inputs, targets = inputs.to(device), targets.to(device)
 
                 outputs = model(inputs)
