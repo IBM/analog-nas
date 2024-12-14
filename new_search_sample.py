@@ -1,20 +1,56 @@
+import torch
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import numpy as np
+import torch.nn as nn
+
+from analogainas.search_spaces.config_space import ConfigSpace
 from analogainas.search_spaces.autoencoder.autoencoder_config_space import AutoEncoderConfigSpace
-from analogainas.evaluators.xgboost import XGBoostEvaluator
+from analogainas.search_spaces.autoencoder.autoencoder_architecture import AutoEncoder
+from analogainas.search_spaces.autoencoder.mnist_autoencoder import MnistAutoEncoder
+from analogainas.search_spaces.autoencoder.mnist_autoencoder import MnistAutoEncoder
+from analogainas.evaluators.realtime_training_evaluator import RealtimeTrainingEvaluator
 from analogainas.search_algorithms.ea_optimized import EAOptimizer
 from analogainas.search_algorithms.worker import Worker
+from analogainas.search_spaces.dataloaders.autoencoder_structured_dataset import AutoEncoderStructuredDataset
+
+from analogainas.analog_helpers.analog_helpers import create_rpu_config, create_analog_optimizer
+from aihwkit.simulator.configs import InferenceRPUConfig
+from aihwkit.simulator.configs.utils import WeightClipType
+from aihwkit.simulator.configs.utils import BoundManagementType
+from aihwkit.simulator.presets.utils import PresetIOParameters
+from aihwkit.inference.noise.pcm import PCMLikeNoiseModel
+from aihwkit.inference.compensation.drift import GlobalDriftCompensation
+from aihwkit.nn.conversion import convert_to_analog_mapped
+from aihwkit.nn import AnalogSequential
+from aihwkit.optim import AnalogSGD
+
 
 CS = AutoEncoderConfigSpace()
 
-print(CS.hyperparameters)
+print(CS.get_hyperparameters())
 
-surrogate = XGBoostEvaluator(model_type="XGBRanker", load_weight=True)  #
-optimizer = EAOptimizer(surrogate, population_size=100, nb_iter=50) # The default population size is 100.
+print(CS.compute_cs_size())
 
-nb_runs = 2
-worker = Worker(CS, optimizer=optimizer, runs=nb_runs)
+transform = transforms.Compose([
+    transforms.ToTensor()
+])
 
+train_mnist_dataset = AutoEncoderStructuredDataset(torchvision.datasets.MNIST(root='./data', train=True, transform=transform, download=True))
+train_dataloader = DataLoader(train_mnist_dataset, batch_size=8, shuffle=True)
+
+test_mnist_dataset = AutoEncoderStructuredDataset(torchvision.datasets.MNIST(root='./data', train=False, transform=transform, download=True))
+test_dataloader = DataLoader(test_mnist_dataset, batch_size=8, shuffle=True)
+
+criterion = nn.MSELoss()
+evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=train_dataloader, test_dataloader=test_dataloader, criterion=criterion)
+
+optimizer = EAOptimizer(evaluator, population_size=20, nb_iter=10)
+
+NB_RUN = 1
+worker = Worker(network_factory=MnistAutoEncoder, cs=CS, optimizer=optimizer, runs=NB_RUN)
+
+print(worker.config_space)
 worker.search()
-worker.result_summary()
-
-best_config = worker.best_config
-best_model = worker.best_arch
