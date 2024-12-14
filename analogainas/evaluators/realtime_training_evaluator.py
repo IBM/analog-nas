@@ -74,6 +74,8 @@ class RealtimeTrainingEvaluator():
 
                     validation_losses.append(loss.item())
 
+            print(f'Epoch: {epoch}, Training Loss: {training_losses[-1]}, Validation Loss: {validation_losses[-1]}')
+
             if epoch > 0 and validation_losses[-1] > validation_losses[-2] - self.patience_threshold:
                 patience_counter += 1
             if patience_counter >= self.patience:
