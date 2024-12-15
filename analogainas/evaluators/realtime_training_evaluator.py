@@ -74,8 +74,6 @@ class RealtimeTrainingEvaluator():
 
                 training_losses.append(loss.item())
 
-                print(f'Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
-
             # Validation
             model.eval()
             with torch.no_grad():
@@ -87,13 +85,13 @@ class RealtimeTrainingEvaluator():
 
                     validation_losses.append(loss.item())
 
-            print(f'Epoch: {epoch}, Training Loss: {training_losses[-1]}, Validation Loss: {validation_losses[-1]}')
+            print(f'{device} - Epoch: {epoch}, Training Loss: {training_losses[-1]}, Validation Loss: {validation_losses[-1]}')
 
             if epoch > 0 and validation_losses[-1] > validation_losses[-2] - self.patience_threshold:
                 patience_counter += 1
             if patience_counter >= self.patience:
                 break
-        print(f'Done training architecture')
+        print(f'{device} - Done training architecture')
         model.to(self.analog_inference_device)
         self._model_arch_to_trained_model[architecture_string] = (model, training_losses, validation_losses)
         self._model_arch_to_training_losses[architecture_string] = training_losses
