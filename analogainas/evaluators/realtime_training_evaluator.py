@@ -29,7 +29,7 @@ class RealtimeTrainingEvaluator():
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
-        self.test__dataloader = test_dataloader
+        self.test_dataloader = test_dataloader
         self.criterion = criterion
         self.lr = lr
         self.epochs = epochs
