@@ -17,6 +17,7 @@ from aihwkit.nn.conversion import convert_to_analog_mapped
 from aihwkit.nn import AnalogSequential
 from aihwkit.optim import AnalogSGD
 from torch.multiprocessing import Pool
+import threading
 # Inference Times:
 ONE_DAY = 24 * 60 * 60
 ONE_MONTH = 30 * ONE_DAY
@@ -110,8 +111,16 @@ class RealtimeTrainingEvaluator():
         # Train each batch of architectures on all gpus
         for batch in batches:
             print(f"Starting new batch with {len(batch)} architectures")
-            with Pool(num_gpus) as p:
-                p.starmap(self._train_model_thread, [(arch, self.gpu_ids[i]) for i, arch in enumerate(batch)])
+            # with Pool(num_gpus) as p:
+            #     p.starmap(self._train_model_thread, [(arch, self.gpu_ids[i]) for i, arch in enumerate(batch)])
+            threads = []
+            for i, arch in enumerate(batch):
+                t = threading.Thread(target=self._train_model_thread, args=(arch, self.gpu_ids[i]))
+                threads.append(t)
+                t.start()
+            for t in threads:
+                t.join()
+
 
     def _get_trained_models(self, architectures):
         trained_models = []
