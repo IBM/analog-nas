@@ -91,6 +91,7 @@ class AutoEncoder(nn.Module):
 
 
         decoded_shape = None
+        self.need_fc_out = False
 
         with torch.no_grad():
             dummy_embedding = torch.zeros(1, self.embedding_dim)
@@ -102,8 +103,9 @@ class AutoEncoder(nn.Module):
 
             decoded_shape = dummy_ret.shape[1:]
 
-        self.fc_out = nn.Linear(current_channels * decoded_shape[1] * decoded_shape[2], input_channels * input_size[0] * input_size[1])
+            self.need_fc_out = (current_channels != input_channels or decoded_shape != input_size)
 
+        self.fc_out = nn.Linear(current_channels * decoded_shape[1] * decoded_shape[2], input_channels * input_size[0] * input_size[1])
 
 
 
@@ -119,10 +121,11 @@ class AutoEncoder(nn.Module):
         h = self.decoder(h)
         h = self.pen_conv(h)
 
-        N = h.size(0)
-        h_flat = h.view(N, -1)
-        h_final = self.fc_out(h_flat)  # (N, input_channels*input_height*input_width)
-        x_recon = h_final.view(N, self.input_channels, self.input_height, self.input_width)
+        if self.need_fc_out:
+            N = h.size(0)
+            h_flat = h.view(N, -1)
+            h_final = self.fc_out(h_flat)
+            x_recon = h_final.view(N, self.input_channels, self.input_height, self.input_width)
         return x_recon
 
     def forward(self, x):
