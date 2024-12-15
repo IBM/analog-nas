@@ -47,7 +47,7 @@ test_dataloader = DataLoader(test_mnist_dataset, batch_size=128, shuffle=True)
 criterion = nn.MSELoss()
 evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=1)
 
-optimizer = EAOptimizer(evaluator, population_size=50, nb_iter=10)
+optimizer = EAOptimizer(evaluator, population_size=50, nb_iter=10, batched_evaluation=True)
 
 NB_RUN = 1
 worker = Worker(network_factory=MnistAutoEncoder, cs=CS, optimizer=optimizer, runs=NB_RUN)
