@@ -47,6 +47,9 @@ class AutoEncoder(nn.Module):
         super().__init__()
         self.config = config
         self.embedding_dim = config["embedding_dim"]
+        self.input_channels = input_channels
+        self.input_height, self.input_width = input_size
+
         current_channels = input_channels
 
         encoder_blocks = []
@@ -62,7 +65,7 @@ class AutoEncoder(nn.Module):
         self.encoder = nn.Sequential(*encoder_blocks)
 
         with torch.no_grad():
-            dummy_input = torch.zeros(1, input_channels, *input_size)
+            dummy_input = torch.zeros(1, input_channels, self.input_height, self.input_width)
             encoded_feat = self.encoder(dummy_input)
             self.encoded_shape = encoded_feat.shape[1:]  # C,H,W
             encoded_feat_dim = encoded_feat.numel()
@@ -84,7 +87,10 @@ class AutoEncoder(nn.Module):
             current_channels = filters
         self.decoder = nn.Sequential(*decoder_blocks)
 
-        self.final_conv = nn.Conv2d(current_channels, input_channels, kernel_size=3, padding=1)
+        self.final_conv = nn.Conv2d(current_channels, current_channels, kernel_size=3, padding=1)
+
+        self.fc_out = nn.Linear(current_channels * self.input_height * self.input_width,
+                                self.input_channels * self.input_height * self.input_width)
 
         with torch.no_grad():
             test_output = self.forward(dummy_input)
@@ -101,10 +107,16 @@ class AutoEncoder(nn.Module):
         h_flat = self.fc_dec(z)
         h = h_flat.view(-1, *self.encoded_shape)
         h = self.decoder(h)
-        x_recon = self.final_conv(h)
+        h = self.final_conv(h)
+
+        N = h.size(0)
+        h_flat = h.view(N, -1)
+        h_final = self.fc_out(h_flat)  # (N, input_channels*input_height*input_width)
+        x_recon = h_final.view(N, self.input_channels, self.input_height, self.input_width)
         return x_recon
 
     def forward(self, x):
         z = self.encode(x)
         x_recon = self.decode(z)
         return x_recon
+
