@@ -104,6 +104,9 @@ class AutoEncoder(nn.Module):
             decoded_shape = dummy_ret.shape[1:]
 
             self.need_fc_out = (decoded_shape != input_size)
+            print("Need FC Out:", self.need_fc_out)
+            print("Decoded Shape:", decoded_shape)
+            print("Input Size:", input_size)
 
         self.fc_out = nn.Linear(input_channels * decoded_shape[1] * decoded_shape[2], input_channels * input_size[0] * input_size[1])
 
