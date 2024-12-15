@@ -174,6 +174,8 @@ class RealtimeTrainingEvaluator():
 
     def query_pop(self, architecture_list):
         architectures = [a[0] for a in architecture_list]
+        for arch in architectures:
+            self._arch_string_to_dict[str(arch)] = arch
 
         day_1_losses = []
         month_1_losses = []
