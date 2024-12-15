@@ -87,7 +87,7 @@ class AutoEncoder(nn.Module):
             current_channels = filters
         self.decoder = nn.Sequential(*decoder_blocks)
 
-        self.pen_conv = nn.Conv2d(current_channels, current_channels, kernel_size=3, padding=1)
+        self.pen_conv = nn.Conv2d(current_channels, input_channels, kernel_size=3, stride=1, padding=1)
 
 
         decoded_shape = None
