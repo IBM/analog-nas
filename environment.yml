@@ -98,3 +98,4 @@ dependencies:
       - triton==2.0.0
       - urllib3==2.2.1
       - xgboost==2.0.3
+      - cachetools==5.5.0

@@ -3,6 +3,7 @@ from analogainas.utils import kendal_correlation
 from analogainas.evaluators.base_evaluator import Evaluator
 from functools import lru_cache
 import torch
+from cachetools import LRUCache
 
 
 from analogainas.analog_helpers.analog_helpers import create_rpu_config, create_analog_optimizer
@@ -35,9 +36,12 @@ class RealtimeTrainingEvaluator():
         self.patience_threshold = patience_threshold
         self._arch_string_to_dict = {}
 
+        self.training_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.analog_inference_device = torch.device("cpu")
+
     @lru_cache(maxsize=32)
     def _get_trained_model(self, model_arch):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = self.training_device
         print(f'Training: {model_arch}')
         print(f'Device: {device}')
         model_arch = self._arch_string_to_dict[str(model_arch)]
@@ -87,7 +91,7 @@ class RealtimeTrainingEvaluator():
             if patience_counter >= self.patience:
                 break
         print(f'Done training: {model_arch}')
-        model.to(torch.device("cpu"))
+        model.to(self.analog_inference_device)
         return model, training_losses, validation_losses
 
     @lru_cache(maxsize=32)
@@ -96,7 +100,7 @@ class RealtimeTrainingEvaluator():
         architecture = self._arch_string_to_dict[str(architecture)]
         model, training_losses, validation_losses = self._get_trained_model(str(architecture))
 
-        analog_model = model.to(torch.device("cpu"))
+        analog_model = model.to(self.analog_inference_device)
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=create_rpu_config())
 
         analog_model.drift_analog_weights(ONE_DAY)

@@ -39,7 +39,8 @@ class EAOptimizer:
                 mutation_prob_depth=0.8, 
                 mutation_prob_other=0.6,
                 max_nb_param=1,
-                T_AVM =10):
+                T_AVM =10,
+                batched_evaluation=False):
         
         assert population_size > 10, f"Population size needs to be at least 10, got {population_size}"
 
@@ -51,6 +52,7 @@ class EAOptimizer:
         self.mutation_prob_other = mutation_prob_other
         self.max_nb_param = max_nb_param
         self.T_AVM = T_AVM
+        self.batched_evaluation = batched_evaluation
     
     def mutate(self, cs, architecture):
         r = random.random() 
@@ -97,25 +99,46 @@ class EAOptimizer:
         return True
 
     def run(self, cs):
-        P = self.generate_initial_population(cs)
-        best_f = 0.0
-        best_x = [None]*self.population_size
+        if not self.batched_evaluation:
+            P = self.generate_initial_population(cs)
+            best_f = 0.0
+            best_x = [None]*self.population_size
 
-        for i in range(self.nb_iter):
-            best_accs =[]
-            new_P = []
-            for a in P:
-                new_a = self.mutate(cs, a)
-                new_P.append(new_a)
-                acc, _ = self.surrogate.query(new_a)
-                best_accs.append(acc)
-            new_f = max(best_accs)
-            if new_f > best_f:
-                best_f = new_f
-                best_x = new_a[0]
-            
-            P = new_P
+            for i in range(self.nb_iter):
+                best_accs =[]
+                new_P = []
+                for a in P:
+                    new_a = self.mutate(cs, a)
+                    new_P.append(new_a)
+                    acc, _ = self.surrogate.query(new_a)
+                    best_accs.append(acc)
+                new_f = max(best_accs)
+                if new_f > best_f:
+                    best_f = new_f
+                    best_x = new_a[0]
 
-            print("ITERATION {} completed: best acc {}".format(i, best_f))
+                P = new_P
 
-        return best_x, best_f
+                print("ITERATION {} completed: best acc {}".format(i, best_f))
+
+            return best_x, best_f
+
+        else:
+            P = self.generate_initial_population(cs)
+            best_f = 0.0
+            best_x = [None]*self.population_size
+
+            for i in range(self.nb_iter):
+                best_accs =[]
+                new_P = []
+                for a in P:
+                    new_a = self.mutate(cs, a)
+                    new_P.append(new_a)
+                accs, _ = self.surrogate.query_pop(new_P)
+                best_f = max(accs)
+                best_x = new_P[accs.index(best_f)]
+
+                print("ITERATION {} completed: best acc {}".format(i, best_f))
+
+            return best_x, best_f
+
