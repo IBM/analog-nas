@@ -20,7 +20,7 @@ class AutoEncoderConfigSpace(BaseConfigSpace):
         return archs
 
     def set_hyperparameters(self):
-        self.add_hyperparameter_range("embedding_dim", "discrete", [64, 128, 256, 512, 1024, 2048])
+        self.add_hyperparameter_range("embedding_dim", "discrete", [64, 128, 256, 512])
 
         # 3 Blocks of variable number of conv layers of varying configs and sizes
 
