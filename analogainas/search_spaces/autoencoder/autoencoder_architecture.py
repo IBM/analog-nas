@@ -103,7 +103,6 @@ class AutoEncoder(nn.Module):
             decoded_shape = dummy_ret.shape[1:]
 
         self.fc_out = nn.Linear(current_channels * decoded_shape[1] * decoded_shape[2], input_channels * input_size[0] * input_size[1])
-        self.final_conv = nn.Conv2d(input_channels, input_channels, kernel_size=3, padding=1)
 
 
 
@@ -124,7 +123,6 @@ class AutoEncoder(nn.Module):
         h_flat = h.view(N, -1)
         h_final = self.fc_out(h_flat)  # (N, input_channels*input_height*input_width)
         x_recon = h_final.view(N, self.input_channels, self.input_height, self.input_width)
-        x_recon = self.final_conv(x_recon)
         return x_recon
 
     def forward(self, x):
