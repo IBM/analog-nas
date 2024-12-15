@@ -89,13 +89,23 @@ class AutoEncoder(nn.Module):
 
         self.final_conv = nn.Conv2d(current_channels, current_channels, kernel_size=3, padding=1)
 
-        self.fc_out = nn.Linear(current_channels * self.input_height * self.input_width,
-                                self.input_channels * self.input_height * self.input_width)
+
+        decoded_shape = None
 
         with torch.no_grad():
-            test_output = self.forward(dummy_input)
-            assert test_output.shape == dummy_input.shape, \
-                f"Output shape {test_output.shape} does not match input shape {dummy_input.shape}"
+            dummy_embedding = torch.zeros(1, self.embedding_dim)
+
+            dummy_ret = self.fc_dec(dummy_embedding)
+            dummy_ret = dummy_ret.view(-1, *self.encoded_shape)
+            dummy_ret = self.decoder(dummy_ret)
+            dummy_ret = self.final_conv(dummy_ret)
+
+            decoded_shape = dummy_ret.shape[1:]
+
+        self.fc_out = nn.Linear(current_channels * decoded_shape[1] * decoded_shape[2], input_channels * input_size[0] * input_size[1])
+
+
+
 
     def encode(self, x):
         h = self.encoder(x)
