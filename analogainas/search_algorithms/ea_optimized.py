@@ -82,7 +82,7 @@ class EAOptimizer:
             architecture = cs.sample_arch_uniformly(1)
         return architecture
 
-    def generic_mutate(self, cs, architecture):
+    def generic_mutate(self, cs, architecture, generic_mutation_prob=0.5):
         new_architecture = cs.sample_arch_uniformly(1)[0]
         for hyperparameter in architecture:
             if random.random() < 0.5:
@@ -140,12 +140,24 @@ class EAOptimizer:
             for i in range(self.nb_iter):
                 best_accs =[]
                 new_P = []
+                # mutate population by ranking
+                i = 0
                 for a in P:
-                    new_a = self.generic_mutate(cs, a)
+                    i += 1
+                    mutation_rate = self.generic_mutation_prob/self.population_size * i
+            
+                    new_a = self.generic_mutate(cs, a, mutation_rate)
                     new_P.append(new_a)
                 accs, _ = self.surrogate.query_pop(new_P)
-                best_f = max(accs)
-                best_x = new_P[accs.index(best_f)]
+
+                # rank architectures by accuracy
+                accs, new_P = zip(*sorted(zip(accs, new_P), reverse=True))
+
+                if accs[0] > best_f:
+                    best_f = accs[0]
+                    best_x = new_P[0]
+
+                P = new_P
 
                 print("ITERATION {} completed: best acc {}".format(i, best_f))
 
