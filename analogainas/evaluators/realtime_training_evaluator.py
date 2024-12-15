@@ -37,7 +37,7 @@ class RealtimeTrainingEvaluator():
         self._arch_string_to_dict = {}
 
         self.training_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.analog_inference_device = torch.device("cpu")
+        self.analog_inference_device = self.training_device
 
     @lru_cache(maxsize=32)
     def _get_trained_model(self, model_arch):
