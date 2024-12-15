@@ -25,7 +25,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
 class RealtimeTrainingEvaluator():
-    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=1, patience=4, patience_threshold=0.01, gpu_ids=[1,2,3,4,5]):
+    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, patience_threshold=0.01, gpu_ids=[1,2,3,4,5]):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -99,7 +99,7 @@ class RealtimeTrainingEvaluator():
                 break
         print(f'{device} - Done training architecture')
         model.to(self.analog_inference_device)
-        self._model_arch_to_trained_model[architecture_string] = (model, training_losses, validation_losses)
+        self._model_arch_to_trained_model[architecture_string] = model
         self._model_arch_to_training_losses[architecture_string] = training_losses
         self._model_arch_to_validation_losses[architecture_string] = validation_losses
 
@@ -115,7 +115,7 @@ class RealtimeTrainingEvaluator():
             #     p.starmap(self._train_model_thread, [(arch, self.gpu_ids[i]) for i, arch in enumerate(batch)])
             threads = []
             for i, arch in enumerate(batch):
-                t = threading.Thread(target=self._train_model_thread, args=(arch, self.gpu_ids[i]))
+                t = threading.Thread(target=self._train_model_thread, args=(str(arch), self.gpu_ids[i]))
                 threads.append(t)
                 t.start()
             for t in threads:
