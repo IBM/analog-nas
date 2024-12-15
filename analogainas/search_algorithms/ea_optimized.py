@@ -133,7 +133,7 @@ class EAOptimizer:
             return best_x, best_f
 
         else:
-            P = self.generate_initial_population(cs)
+            P = cs.sample_arch_uniformly(self.population_size)
             best_f = 0.0
             best_x = [None]*self.population_size
 
