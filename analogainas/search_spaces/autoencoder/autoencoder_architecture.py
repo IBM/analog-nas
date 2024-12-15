@@ -106,7 +106,6 @@ class AutoEncoder(nn.Module):
 
 
 
-
     def encode(self, x):
         h = self.encoder(x)
         h_flat = torch.flatten(h, start_dim=1)
