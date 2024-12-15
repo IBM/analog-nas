@@ -115,10 +115,10 @@ class AutoEncoder(nn.Module):
         h = h_flat.view(-1, *self.encoded_shape)
         h = self.decoder(h)
         x_recon = self.final_conv(h)
+        #x_recon = torch.sigmoid(x_recon)
         return x_recon
 
     def forward(self, x):
         z = self.encode(x)
         x_recon = self.decode(z)
-        x_recon = torch.sigmoid(x_recon)
         return x_recon

@@ -133,6 +133,9 @@ class RealtimeTrainingEvaluator():
         architecture = self._arch_string_to_dict[str(architecture)]
         model = self._model_arch_to_trained_model[str(architecture)]
 
+        if str(architecture) in self._model_arch_to_day_1_losses:
+            return self._model_arch_to_day_1_losses[str(architecture)], self._model_arch_to_month_1_losses[str(architecture)]
+
         analog_model = model.to(self.analog_inference_device)
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=create_rpu_config())
 
