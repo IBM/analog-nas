@@ -127,10 +127,10 @@ class AutoEncoder(nn.Module):
 
         if self.need_fc_out:
             N = h.size(0)
-            h_flat = h.view(N, -1)
-            h_final = self.fc_out(h_flat)
-            x_recon = h_final.view(N, self.input_channels, self.input_height, self.input_width)
-        return x_recon
+            h = h.view(N, -1)
+            h = self.fc_out(h)
+            h = h.view(N, self.input_channels, self.input_height, self.input_width)
+        return h
 
     def forward(self, x):
         z = self.encode(x)
