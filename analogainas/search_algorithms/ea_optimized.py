@@ -145,9 +145,9 @@ class EAOptimizer:
                 for a in P:
                     i += 1
                     mutation_rate = self.generic_mutation_prob/self.population_size * i
-            
+
                     new_a = self.generic_mutate(cs, a, mutation_rate)
-                    new_P.append(new_a)
+                    new_P.append([new_a])
                 accs, _ = self.surrogate.query_pop(new_P)
 
                 # rank architectures by accuracy
