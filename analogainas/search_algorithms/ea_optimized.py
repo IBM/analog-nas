@@ -38,6 +38,7 @@ class EAOptimizer:
                 mutation_prob_width=0.8,
                 mutation_prob_depth=0.8, 
                 mutation_prob_other=0.6,
+                generic_mutation_prob=0.5,
                 max_nb_param=1,
                 T_AVM =10,
                 batched_evaluation=False):
@@ -50,6 +51,7 @@ class EAOptimizer:
         self.mutation_prob_width = mutation_prob_width
         self.mutation_prob_depth = mutation_prob_depth
         self.mutation_prob_other = mutation_prob_other
+        self.generic_mutation_prob = generic_mutation_prob
         self.max_nb_param = max_nb_param
         self.T_AVM = T_AVM
         self.batched_evaluation = batched_evaluation
@@ -79,6 +81,13 @@ class EAOptimizer:
         if random.random() < self.mutation_prob_other:
             architecture = cs.sample_arch_uniformly(1)
         return architecture
+
+    def generic_mutate(self, cs, architecture):
+        new_architecture = cs.sample_arch_uniformly(1)
+        for hyperparameter in architecture:
+            if random.random() < 0.5:
+                new_architecture[hyperparameter] = architecture[hyperparameter]
+        return new_architecture
 
     def generate_initial_population(self, cs):
         P = [cs.sample_arch_uniformly(1)] * self.population_size
@@ -132,7 +141,7 @@ class EAOptimizer:
                 best_accs =[]
                 new_P = []
                 for a in P:
-                    new_a = self.mutate(cs, a)
+                    new_a = self.generic_mutate(cs, a)
                     new_P.append(new_a)
                 accs, _ = self.surrogate.query_pop(new_P)
                 best_f = max(accs)

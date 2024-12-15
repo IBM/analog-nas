@@ -112,3 +112,11 @@ class BaseConfigSpace(ConfigSpace):
             str_ += "{})\n".format(i) + str(h) + "\n\n"
         str_ += "------------------------------------------------\n"
         return str_
+
+    def set_hyperparameter(self, name, value):
+        for h in self.hyperparameters:
+            if h.name == name:
+                h.value = value
+                break
+        else:
+            raise Exception("Hyperparameter not found")
