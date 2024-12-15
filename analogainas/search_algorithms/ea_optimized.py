@@ -141,6 +141,7 @@ class EAOptimizer:
                 best_accs =[]
                 new_P = []
                 for a in P:
+                    input("generic mutation")
                     new_a = self.generic_mutate(cs, a)
                     new_P.append(new_a)
                 accs, _ = self.surrogate.query_pop(new_P)
