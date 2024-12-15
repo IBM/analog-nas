@@ -205,6 +205,8 @@ class RealtimeTrainingEvaluator():
             day_1_losses.append(day_1_loss)
             month_1_losses.append(month_1_loss)
 
+            print(f"For {arch} day 1 loss: {day_1_loss}, month 1 loss: {month_1_loss}")
+
         return day_1_losses, month_1_losses
 
 
