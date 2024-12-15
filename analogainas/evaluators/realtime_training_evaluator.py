@@ -59,6 +59,8 @@ class RealtimeTrainingEvaluator():
 
         optimizer = create_analog_optimizer(model, self.lr)
 
+        print(f"Launching training for {architecture_string} on {device}")
+
         for epoch in range(self.epochs):
             print(epoch)
             # Training
@@ -73,6 +75,9 @@ class RealtimeTrainingEvaluator():
                 optimizer.zero_grad()
 
                 training_losses.append(loss.item())
+
+                if i % 100 == 0:
+                    print(f'{device} - Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
 
             # Validation
             model.eval()
