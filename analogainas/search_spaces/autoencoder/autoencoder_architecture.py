@@ -76,9 +76,9 @@ class AutoEncoder(nn.Module):
         decoder_blocks = []
         for i in range(1, 4):
             depth = config[f"encoder_convblock{4-i}_depth"]
-            kernel_size = config[f"decoder_convblock{4-i}_kernel_size"]
-            filters = config[f"decoder_convblock{4-i}_filters"]
-            stride = config[f"decoder_convblock{4-i}_stride"]
+            kernel_size = config[f"encoder_convblock{4-i}_kernel_size"]
+            filters = config[f"encoder_convblock{4-i}_filters"]
+            stride = config[f"encoder_convblock{4-i}_stride"]
             decoder_blocks.append(
                 DeconvBlock(
                     current_channels, filters, kernel_size, stride, depth
