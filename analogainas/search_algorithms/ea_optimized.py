@@ -83,7 +83,7 @@ class EAOptimizer:
         return architecture
 
     def generic_mutate(self, cs, architecture):
-        new_architecture = cs.sample_arch_uniformly(1)
+        new_architecture = cs.sample_arch_uniformly(1)[0]
         for hyperparameter in architecture:
             if random.random() < 0.5:
                 new_architecture[hyperparameter] = architecture[hyperparameter]
@@ -141,12 +141,8 @@ class EAOptimizer:
                 best_accs =[]
                 new_P = []
                 for a in P:
-                    input("generic mutation")
                     new_a = self.generic_mutate(cs, a)
                     new_P.append(new_a)
-                print("querying pop")
-                print(new_P)
-                input("querying pop")
                 accs, _ = self.surrogate.query_pop(new_P)
                 best_f = max(accs)
                 best_x = new_P[accs.index(best_f)]
