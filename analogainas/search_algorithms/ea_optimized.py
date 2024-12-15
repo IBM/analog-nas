@@ -108,7 +108,6 @@ class EAOptimizer:
         return True
 
     def run(self, cs):
-        input("Batched evaluation")
         if not self.batched_evaluation:
             P = self.generate_initial_population(cs)
             best_f = 0.0
@@ -145,6 +144,9 @@ class EAOptimizer:
                     input("generic mutation")
                     new_a = self.generic_mutate(cs, a)
                     new_P.append(new_a)
+                print("querying pop")
+                print(new_P)
+                input("querying pop")
                 accs, _ = self.surrogate.query_pop(new_P)
                 best_f = max(accs)
                 best_x = new_P[accs.index(best_f)]
