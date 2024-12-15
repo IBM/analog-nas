@@ -58,7 +58,7 @@ class RealtimeTrainingEvaluator():
         validation_losses = []
         patience_counter = 0
 
-        optimizer = create_analog_optimizer(model, self.lr)
+        optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
 
         print(f"Launching training for {architecture_string} on {device}")
 
