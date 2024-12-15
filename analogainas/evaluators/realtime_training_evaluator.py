@@ -99,7 +99,7 @@ class RealtimeTrainingEvaluator():
         analog_model = model.to(torch.device("cpu"))
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=create_rpu_config())
 
-        analog_model = analog_model.drift_analog_weights(ONE_DAY)
+        analog_model.drift_analog_weights(ONE_DAY)
 
         analog_model.eval()
         day_1_losses = []
@@ -111,7 +111,7 @@ class RealtimeTrainingEvaluator():
 
                 day_1_losses.append(loss.item())
 
-        analog_model = analog_model.drift_analog_weights(ONE_MONTH)
+        analog_model.drift_analog_weights(ONE_MONTH)
 
         analog_model.eval()
         month_1_losses = []
