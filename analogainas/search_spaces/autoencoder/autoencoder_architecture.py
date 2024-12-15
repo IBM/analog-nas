@@ -120,4 +120,5 @@ class AutoEncoder(nn.Module):
     def forward(self, x):
         z = self.encode(x)
         x_recon = self.decode(z)
+        x_recon = torch.sigmoid(x_recon)
         return x_recon
