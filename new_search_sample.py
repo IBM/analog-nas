@@ -45,7 +45,7 @@ test_mnist_dataset = AutoEncoderStructuredDataset(torchvision.datasets.MNIST(roo
 test_dataloader = DataLoader(test_mnist_dataset, batch_size=128, shuffle=True)
 
 criterion = nn.MSELoss()
-evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=3)
+evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=1)
 
 optimizer = EAOptimizer(evaluator, population_size=50, nb_iter=10)
 

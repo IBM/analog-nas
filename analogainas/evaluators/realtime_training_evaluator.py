@@ -195,6 +195,8 @@ class RealtimeTrainingEvaluator():
 
         self._get_trained_models(architectures)
 
+        print("Getting estimates")
+
         for arch in architectures:
             day_1_loss, month_1_loss = self._get_estimates(str(arch))
             day_1_losses.append(day_1_loss)
