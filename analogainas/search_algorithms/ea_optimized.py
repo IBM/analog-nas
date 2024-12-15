@@ -108,6 +108,7 @@ class EAOptimizer:
         return True
 
     def run(self, cs):
+        input("Batched evaluation")
         if not self.batched_evaluation:
             P = self.generate_initial_population(cs)
             best_f = 0.0
