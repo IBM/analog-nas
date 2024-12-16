@@ -154,6 +154,8 @@ class EAOptimizer:
                 print(accs)
                 # rank architectures by accuracy
                 accs, new_P = zip(*sorted(zip(accs, new_P), reverse=True))
+                accs = list(accs)
+                new_P = list(new_P)
 
                 print(f"Sorted accs: {accs}, new_P: {new_P}")
                 if accs[0] > best_f:
