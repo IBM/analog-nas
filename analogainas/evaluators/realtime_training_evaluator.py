@@ -246,7 +246,7 @@ class RealtimeTrainingEvaluator():
 
         for arch in architectures:
             validation_losses = self._model_arch_to_validation_losses[str(arch)]
-            last_val_loss = validation_losses[-1]
+            last_val_loss = validation_losses[-1] * -1
             if should_bypass_eval and last_val_loss < bypass_threshold:
                 day_1_losses.append(bypass_threshold)
                 month_1_losses.append(bypass_threshold)
