@@ -232,7 +232,7 @@ class RealtimeTrainingEvaluator():
         return (avg_day_1_loss, avg_month_1_loss)
 
 
-    def query_pop(self, architecture_list):
+    def query_pop(self, architecture_list, should_bypass_eval=False, bypass_threshold=0.0):
         architectures = [a[0] for a in architecture_list]
         for arch in architectures:
             self._arch_string_to_dict[str(arch)] = arch
@@ -245,6 +245,13 @@ class RealtimeTrainingEvaluator():
         print("Getting estimates")
 
         for arch in architectures:
+            validation_losses = self._model_arch_to_validation_losses[str(arch)]
+            last_val_loss = validation_losses[-1]
+            if should_bypass_eval and last_val_loss < bypass_threshold:
+                day_1_losses.append(bypass_threshold)
+                month_1_losses.append(bypass_threshold)
+                continue
+
             day_1_loss, month_1_loss = self._get_estimates(str(arch))
             avg_day_1_loss = sum(day_1_loss) / len(day_1_loss) * -1
             avg_month_1_loss = sum(month_1_loss) / len(month_1_loss) * -1

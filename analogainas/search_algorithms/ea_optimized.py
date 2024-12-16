@@ -134,7 +134,8 @@ class EAOptimizer:
 
         else:
             P = cs.sample_arch_uniformly(self.population_size)
-            best_f = 0.0
+            # set best_f to lowest float
+            best_f = -1 * float('inf')
             best_x = [None]*self.population_size
 
             for i in range(self.nb_iter):
@@ -148,7 +149,7 @@ class EAOptimizer:
 
                     new_a = self.generic_mutate(cs, a, mutation_rate)
                     new_P.append(new_a)
-                accs, _ = self.surrogate.query_pop([[el] for el in new_P])
+                accs, _ = self.surrogate.query_pop([[el] for el in new_P], should_bypass_eval=True, bypass_threshold=best_f)
                 print(f"Accs: {accs}")
 
                 print(accs)
