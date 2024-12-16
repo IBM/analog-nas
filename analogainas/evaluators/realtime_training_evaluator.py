@@ -20,6 +20,8 @@ from torch.multiprocessing import Pool
 import threading
 import os
 
+from torch.utils.tensorboard import SummaryWriter
+
 # Inference Times:
 ONE_DAY = 24 * 60 * 60
 ONE_MONTH = 30 * ONE_DAY
@@ -53,6 +55,9 @@ class RealtimeTrainingEvaluator():
         self._tb_log_dir = os.path.join(self._artifact_dir, 'tensorboard')
         os.makedirs(self._tb_log_dir, exist_ok=True)
         self.writer = SummaryWriter(log_dir=self._tb_log_dir)
+        self.thread_lock = threading.Lock()
+
+        self._global_iteration = 0
 
     def _train_model_thread(self, architecture_string, device_id):
         device = torch.device("cuda:" + str(device_id) if torch.cuda.is_available() else "cpu")
@@ -86,6 +91,8 @@ class RealtimeTrainingEvaluator():
 
                 if i % 100 == 0:
                     print(f'{device} - Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
+                    with self.thread_lock:
+                        self.writer.add_scalar(f'{self._global_iteration}/gpu:{device_id}/training_loss', loss.item(), i + epoch * len(self.train_dataloader))
 
                 if i > self.max_batches:
                     break
@@ -102,6 +109,8 @@ class RealtimeTrainingEvaluator():
                     validation_losses.append(loss.item())
 
             print(f'{device} - Epoch: {epoch}, Training Loss: {training_losses[-1]}, Validation Loss: {validation_losses[-1]}')
+            with self.thread_lock:
+                self.writer.add_scalar(f'{self._global_iteration}/gpu:{device_id}/validation_loss', validation_losses[-1], epoch)
 
             if epoch > 0 and validation_losses[-1] > validation_losses[-2] - self.patience_threshold:
                 patience_counter += 1
@@ -134,7 +143,13 @@ class RealtimeTrainingEvaluator():
 
     def _get_trained_models(self, architectures):
         trained_models = []
-        self._train_architectures_threaded(architectures)
+        architectures_to_train = []
+        for arch in architectures:
+            if str(arch) not in self._model_arch_to_trained_model:
+                architectures_to_train.append(arch)
+        if len(architectures_to_train) > 0:
+            self._train_architectures_threaded(architectures_to_train)
+            self._global_iteration += 1
         for arch in architectures:
             trained_models.append(self._model_arch_to_trained_model[str(arch)])
         return trained_models
