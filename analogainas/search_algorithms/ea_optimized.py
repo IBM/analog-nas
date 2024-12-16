@@ -149,18 +149,23 @@ class EAOptimizer:
                     new_a = self.generic_mutate(cs, a, mutation_rate)
                     new_P.append(new_a)
                 accs, _ = self.surrogate.query_pop(new_P)
+                print(f"Accs: {accs}")
 
+                print(accs)
                 # rank architectures by accuracy
                 accs, new_P = zip(*sorted(zip(accs, new_P), reverse=True))
 
+                print(f"Sorted accs: {accs}, new_P: {new_P}")
                 if accs[0] > best_f:
                     best_f = accs[0]
                     best_x = new_P[0]
 
+                print(f"Best f: {best_f}, best_x: {best_x}")
                 # duplicate the best and move everything down
                 new_P.insert(0, new_P[0])
                 # remove the last element
                 new_P = new_P[:-1]
+                print(f"New P After Update: {new_P}")
 
                 P = new_P
 
