@@ -141,10 +141,10 @@ class EAOptimizer:
                 best_accs =[]
                 new_P = []
                 # mutate population by ranking
-                i = 0
+                j = 0
                 for a in P:
-                    i += 1
-                    mutation_rate = self.generic_mutation_prob/self.population_size * i
+                    j += 1
+                    mutation_rate = self.generic_mutation_prob/self.population_size * j
 
                     new_a = self.generic_mutate(cs, a, mutation_rate)
                     new_P.append(new_a)
