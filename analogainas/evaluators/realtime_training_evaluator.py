@@ -33,6 +33,7 @@ class RealtimeTrainingEvaluator():
         self.criterion = criterion
         self.lr = lr
         self.epochs = epochs
+        self.max_batches = max_batches
         self.patience = patience
         self.patience_threshold = patience_threshold
         self._arch_string_to_dict = {}
