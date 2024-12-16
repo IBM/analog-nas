@@ -157,7 +157,7 @@ class EAOptimizer:
                     best_f = accs[0]
                     best_x = new_P[0]
 
-                new_P[-1] = new_P[0]
+                new_P = [new_P[0]] + new_P[:-1]
 
                 P = new_P
 
