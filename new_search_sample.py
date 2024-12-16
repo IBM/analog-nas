@@ -27,7 +27,6 @@ from aihwkit.nn.conversion import convert_to_analog_mapped
 from aihwkit.nn import AnalogSequential
 from aihwkit.optim import AnalogSGD
 
-from build.lib.analogainas.evaluators.mlp import optimizer
 
 CS = AutoEncoderConfigSpace()
 
