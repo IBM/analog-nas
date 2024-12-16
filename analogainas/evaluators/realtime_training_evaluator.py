@@ -248,8 +248,8 @@ class RealtimeTrainingEvaluator():
             validation_losses = self._model_arch_to_validation_losses[str(arch)]
             last_val_loss = validation_losses[-1] * -1
             if should_bypass_eval and last_val_loss < bypass_threshold:
-                day_1_losses.append(bypass_threshold)
-                month_1_losses.append(bypass_threshold)
+                day_1_losses.append(-1 * float('inf'))
+                month_1_losses.append(-1 * float('inf'))
                 continue
 
             day_1_loss, month_1_loss = self._get_estimates(str(arch))
