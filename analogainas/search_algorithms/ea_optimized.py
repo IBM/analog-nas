@@ -148,7 +148,7 @@ class EAOptimizer:
 
                     new_a = self.generic_mutate(cs, a, mutation_rate)
                     new_P.append(new_a)
-                accs, _ = self.surrogate.query_pop(new_P)
+                accs, _ = self.surrogate.query_pop([[el] for el in new_P])
                 print(f"Accs: {accs}")
 
                 print(accs)
