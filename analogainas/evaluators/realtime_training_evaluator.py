@@ -79,10 +79,10 @@ class RealtimeTrainingEvaluator():
 
         print(f"Launching training for {architecture_string} on {device}")
 
+        batch_idx = 0
         for epoch in range(self.epochs):
             # Training
             model.train()
-            batch_idx = 0
             for i, (inputs, targets) in enumerate(self.train_dataloader):
 
                 inputs, targets = inputs.to(device), targets.to(device)
