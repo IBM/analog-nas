@@ -18,6 +18,8 @@ from aihwkit.nn import AnalogSequential
 from aihwkit.optim import AnalogSGD
 from torch.multiprocessing import Pool
 import threading
+import os
+
 # Inference Times:
 ONE_DAY = 24 * 60 * 60
 ONE_MONTH = 30 * ONE_DAY
@@ -25,7 +27,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
 class RealtimeTrainingEvaluator():
-    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=3000, patience_threshold=0.01, gpu_ids=[1,2,3,4,5]):
+    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=3000, patience_threshold=0.01, gpu_ids=[1,2,3,4,5], artifact_dir='./results'):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -42,10 +44,15 @@ class RealtimeTrainingEvaluator():
         self._model_arch_to_validation_losses = LRUCache(maxsize=64)
         self._model_arch_to_day_1_losses = LRUCache(maxsize=64)
         self._model_arch_to_month_1_losses = LRUCache(maxsize=64)
+        self._artifact_dir = artifact_dir
 
         self.gpu_ids = gpu_ids
         self.training_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.analog_inference_device = torch.device("cpu")
+
+        self._tb_log_dir = os.path.join(self._artifact_dir, 'tensorboard')
+        os.makedirs(self._tb_log_dir, exist_ok=True)
+        self.writer = SummaryWriter(log_dir=self._tb_log_dir)
 
     def _train_model_thread(self, architecture_string, device_id):
         device = torch.device("cuda:" + str(device_id) if torch.cuda.is_available() else "cpu")
@@ -132,7 +139,7 @@ class RealtimeTrainingEvaluator():
             trained_models.append(self._model_arch_to_trained_model[str(arch)])
         return trained_models
 
-    def _get_estimates(self, architecture, max_batches= 10):
+    def _get_estimates(self, architecture, max_batches= 3):
         # Need to swap with metric agnostic version
         architecture = self._arch_string_to_dict[str(architecture)]
         model = self._model_arch_to_trained_model[str(architecture)]
@@ -177,8 +184,8 @@ class RealtimeTrainingEvaluator():
 
             print(f"Month 1 losses: {month_1_losses}")
 
-        self._model_arch_to_training_losses[str(architecture)] = training_losses
-        self._model_arch_to_validation_losses[str(architecture)] = validation_losses
+        self._model_arch_to_day_1_losses[str(architecture)] = day_1_losses
+        self._model_arch_to_month_1_losses[str(architecture)] = month_1_losses
 
         return day_1_losses, month_1_losses
 
