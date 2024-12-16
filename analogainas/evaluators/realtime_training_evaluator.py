@@ -25,7 +25,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
 class RealtimeTrainingEvaluator():
-    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=1500, patience_threshold=0.01, gpu_ids=[1,2,3,4,5]):
+    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=3000, patience_threshold=0.01, gpu_ids=[1,2,3,4,5]):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -132,7 +132,7 @@ class RealtimeTrainingEvaluator():
             trained_models.append(self._model_arch_to_trained_model[str(arch)])
         return trained_models
 
-    def _get_estimates(self, architecture, max_batches=50):
+    def _get_estimates(self, architecture, max_batches= 10):
         # Need to swap with metric agnostic version
         architecture = self._arch_string_to_dict[str(architecture)]
         model = self._model_arch_to_trained_model[str(architecture)]
