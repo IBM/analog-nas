@@ -100,7 +100,7 @@ class RealtimeTrainingEvaluator():
                     with self.thread_lock:
                         gpu_writer.add_scalar(f'{self._global_iteration}/training_loss', loss.item(), batch_idx)
 
-                if batch_idx > self.max_batches:
+                if i > self.max_batches:
                     break
 
                 batch_idx += 1
