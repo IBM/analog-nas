@@ -78,7 +78,9 @@ class RealtimeTrainingEvaluator():
         for epoch in range(self.epochs):
             # Training
             model.train()
+            batch_idx = 0
             for i, (inputs, targets) in enumerate(self.train_dataloader):
+
                 inputs, targets = inputs.to(device), targets.to(device)
 
                 outputs = model(inputs)
@@ -89,13 +91,15 @@ class RealtimeTrainingEvaluator():
 
                 training_losses.append(loss.item())
 
-                if i % 100 == 0:
+                if batch_idx % 100 == 0:
                     print(f'{device} - Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
                     with self.thread_lock:
-                        self.writer.add_scalar(f'{self._global_iteration}/gpu:{device_id}/training_loss', loss.item(), i + epoch * len(self.train_dataloader))
+                        self.writer.add_scalar(f'{self._global_iteration}/gpu:{device_id}/training_loss', loss.item(), batch_idx)
 
-                if i > self.max_batches:
+                if batch_idx > self.max_batches:
                     break
+
+                batch_idx += 1
 
             # Validation
             model.eval()
