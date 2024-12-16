@@ -157,11 +157,8 @@ class EAOptimizer:
                 sorted_accs = sorted(accs, reverse=True)
                 sorted_new_P = [new_P[accs.index(acc)] for acc in sorted_accs]
 
-                accs = sorted_accs
-                new_P = sorted_new_P
-
-                accs = list(accs)
-                new_P = list(new_P)
+                accs = list(sorted_accs)
+                new_P = list(sorted_new_P)
 
                 print(f"Sorted accs: {accs}, new_P: {new_P}")
                 if accs[0] > best_f:
