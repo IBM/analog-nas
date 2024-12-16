@@ -94,7 +94,7 @@ class RealtimeTrainingEvaluator():
                 if batch_idx % 100 == 0:
                     print(f'{device} - Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
                     with self.thread_lock:
-                        self.writer.add_scalar(f'{self._global_iteration}/gpu:{device_id}/training_loss', loss.item(), batch_idx)
+                        self.writer.add_scalar(f'gpu:{device_id}/{self._global_iteration}/training_loss', loss.item(), batch_idx)
 
                 if batch_idx > self.max_batches:
                     break
@@ -114,7 +114,7 @@ class RealtimeTrainingEvaluator():
 
             print(f'{device} - Epoch: {epoch}, Training Loss: {training_losses[-1]}, Validation Loss: {validation_losses[-1]}')
             with self.thread_lock:
-                self.writer.add_scalar(f'{self._global_iteration}/gpu:{device_id}/validation_loss', validation_losses[-1], epoch)
+                self.writer.add_scalar(f'gpu:{device_id}/{self._global_iteration}/validation_loss', validation_losses[-1], epoch)
 
             if epoch > 0 and validation_losses[-1] > validation_losses[-2] - self.patience_threshold:
                 patience_counter += 1
