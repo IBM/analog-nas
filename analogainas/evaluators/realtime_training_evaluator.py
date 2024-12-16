@@ -60,6 +60,10 @@ class RealtimeTrainingEvaluator():
         self._global_iteration = 0
 
     def _train_model_thread(self, architecture_string, device_id):
+        gpu_path = self._tb_log_dir + f'/gpu:{device_id}'
+        os.makedirs(gpu_path, exist_ok=True)
+        gpu_writer = SummaryWriter(log_dir=gpu_path)
+
         device = torch.device("cuda:" + str(device_id) if torch.cuda.is_available() else "cpu")
         architecture = self._arch_string_to_dict[str(architecture_string)]
 
@@ -94,7 +98,7 @@ class RealtimeTrainingEvaluator():
                 if batch_idx % 100 == 0:
                     print(f'{device} - Epoch: {epoch}, Batch: {i}, Loss: {loss.item()}')
                     with self.thread_lock:
-                        self.writer.add_scalar(f'gpu:{device_id}/{self._global_iteration}/training_loss', loss.item(), batch_idx)
+                        gpu_writer.add_scalar(f'{self._global_iteration}/training_loss', loss.item(), batch_idx)
 
                 if batch_idx > self.max_batches:
                     break
@@ -114,7 +118,7 @@ class RealtimeTrainingEvaluator():
 
             print(f'{device} - Epoch: {epoch}, Training Loss: {training_losses[-1]}, Validation Loss: {validation_losses[-1]}')
             with self.thread_lock:
-                self.writer.add_scalar(f'gpu:{device_id}/{self._global_iteration}/validation_loss', validation_losses[-1], epoch)
+                gpu_writer.add_scalar(f'{self._global_iteration}/validation_loss', validation_losses[-1], epoch)
 
             if epoch > 0 and validation_losses[-1] > validation_losses[-2] - self.patience_threshold:
                 patience_counter += 1
