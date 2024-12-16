@@ -246,8 +246,11 @@ class RealtimeTrainingEvaluator():
 
         for arch in architectures:
             day_1_loss, month_1_loss = self._get_estimates(str(arch))
-            day_1_losses.append(day_1_loss)
-            month_1_losses.append(month_1_loss)
+            avg_day_1_loss = sum(day_1_loss) / len(day_1_loss)
+            avg_month_1_loss = sum(month_1_loss) / len(month_1_loss)
+
+            day_1_losses.append(avg_day_1_loss)
+            month_1_losses.append(avg_month_1_loss)
 
             print(f"For {arch} day 1 loss: {day_1_loss}, month 1 loss: {month_1_loss}")
 
