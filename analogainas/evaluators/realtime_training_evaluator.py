@@ -240,6 +240,10 @@ class RealtimeTrainingEvaluator():
         day_1_losses = []
         month_1_losses = []
 
+        mock_day_1_losses = [] * len(architectures)
+        mock_month_1_losses = [0.1] * len(architectures)
+        return mock_day_1_losses, mock_month_1_losses
+
         self._get_trained_models(architectures)
 
         print("Getting estimates")
