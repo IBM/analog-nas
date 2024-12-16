@@ -132,7 +132,7 @@ class RealtimeTrainingEvaluator():
             trained_models.append(self._model_arch_to_trained_model[str(arch)])
         return trained_models
 
-    def _get_estimates(self, architecture):
+    def _get_estimates(self, architecture, max_batches=50):
         # Need to swap with metric agnostic version
         architecture = self._arch_string_to_dict[str(architecture)]
         model = self._model_arch_to_trained_model[str(architecture)]
@@ -155,6 +155,11 @@ class RealtimeTrainingEvaluator():
 
                 day_1_losses.append(loss.item())
 
+                if i > max_batches:
+                    break
+
+            print(f"Day 1 losses: {day_1_losses}")
+
         analog_model.drift_analog_weights(ONE_MONTH)
 
         analog_model.eval()
@@ -166,6 +171,11 @@ class RealtimeTrainingEvaluator():
                 loss = self.criterion(outputs, targets)
 
                 month_1_losses.append(loss.item())
+
+                if i > max_batches:
+                    break
+
+            print(f"Month 1 losses: {month_1_losses}")
 
         self._model_arch_to_training_losses[str(architecture)] = training_losses
         self._model_arch_to_validation_losses[str(architecture)] = validation_losses
