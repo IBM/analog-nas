@@ -87,6 +87,7 @@ class RealtimeTrainingEvaluator():
             for i, (inputs, targets) in enumerate(self.train_dataloader):
 
                 inputs, targets = inputs.to(device), targets.to(device)
+                print(f"Inputs: {inputs.shape}, Targets: {targets.shape}")
 
                 outputs = model(inputs)
                 loss = self.criterion(outputs, targets)
