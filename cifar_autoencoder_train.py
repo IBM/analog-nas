@@ -57,7 +57,6 @@ criterion = nn.MSELoss()
 evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=10, artifact_dir='LongAutoEncoderTraining')
 
 optimizer = EAOptimizer(evaluator, population_size=50, nb_iter=10, batched_evaluation=True)
-#optimizer = EAOptimizer(evaluator, population_size=20, nb_iter=10, batched_evaluation=True)
 
 NB_RUN = 1
 worker = Worker(network_factory=CifarAutoEncoder, cs=CS, optimizer=optimizer, runs=NB_RUN)
