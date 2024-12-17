@@ -29,7 +29,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
 class RealtimeTrainingEvaluator():
-    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=2000, patience_threshold=0.01, gpu_ids=[1,2,3,4,5], artifact_dir='./results'):
+    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=3000, patience_threshold=0.01, gpu_ids=[1,2,3,4,5], artifact_dir='./results'):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -76,8 +76,9 @@ class RealtimeTrainingEvaluator():
         patience_counter = 0
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
+        step_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.1)
 
-        print(f"Launching training for {architecture_string} on {device}")
+        print(f"Launching training for {architecture_string} on {device} for {self.epochs} epochs")
 
         batch_idx = 0
         for epoch in range(self.epochs):
@@ -105,6 +106,7 @@ class RealtimeTrainingEvaluator():
 
                 batch_idx += 1
 
+            step_scheduler.step()
             # Validation
             model.eval()
             with torch.no_grad():
