@@ -29,7 +29,7 @@ ONE_MONTH = 30 * ONE_DAY
 
 """Class for Evaluating the Model Architecture Directly without an Estimator."""
 class RealtimeTrainingEvaluator():
-    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=3000, patience_threshold=0.01, gpu_ids=[1,2,3,4,5], artifact_dir='./results'):
+    def __init__(self, model_factory=None, train_dataloader=None, val_dataloader=None, test_dataloader=None, criterion=None, lr = 0.001, epochs=5, patience=4, max_batches=5000, patience_threshold=0.002, gpu_ids=[1,2,3,4,5], artifact_dir='./results'):
         self.model_factory = model_factory
         self.train_dataloader = train_dataloader
         self.val_dataloader = val_dataloader
@@ -122,7 +122,7 @@ class RealtimeTrainingEvaluator():
             with self.thread_lock:
                 gpu_writer.add_scalar(f'{self._global_iteration}/validation_loss', validation_losses[-1], epoch)
 
-            if epoch > 0 and validation_losses[-1] > validation_losses[-2] - self.patience_threshold:
+            if epoch > 0 and validation_losses[-2] - validation_losses[-1] < self.patience_threshold:
                 patience_counter += 1
             if patience_counter >= self.patience:
                 break
