@@ -54,7 +54,7 @@ test_cifar_dataset = AutoEncoderStructuredDataset(
 test_dataloader = DataLoader(test_cifar_dataset, batch_size=64, shuffle=True)
 
 criterion = nn.MSELoss()
-evaluator = RealtimeTrainingEvaluator(model_factory=MnistAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=13, artifact_dir='CifarAutoEncoderTraining')
+evaluator = RealtimeTrainingEvaluator(model_factory=CifarAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=13, artifact_dir='CifarAutoEncoderTraining')
 
 optimizer = EAOptimizer(evaluator, population_size=50, nb_iter=10, batched_evaluation=True)
 
