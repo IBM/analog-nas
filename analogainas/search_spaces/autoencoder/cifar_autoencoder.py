@@ -1,6 +1,4 @@
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 from analogainas.search_spaces.autoencoder.autoencoder_architecture import AutoEncoder
 
