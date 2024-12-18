@@ -166,6 +166,7 @@ class EAOptimizer:
                     best_x = new_P[0]
 
                 print(f"Best f: {best_f}, best_x: {best_x}")
+                print("Best architecture: ", best_x)
                 # duplicate the best and move everything down
                 new_P.insert(0, new_P[0])
                 # remove the last element
