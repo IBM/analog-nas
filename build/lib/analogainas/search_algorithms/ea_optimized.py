@@ -116,5 +116,6 @@ class EAOptimizer:
             P = new_P
 
             print("ITERATION {} completed: best acc {}".format(i, best_f))
+            print("Best architecture: ", best_x)
 
         return best_x, best_f
