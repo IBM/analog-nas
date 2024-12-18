@@ -106,6 +106,7 @@ class RealtimeRPUEvaluator():
         print("Getting estimates")
 
         for arch in architectures:
+            print(str(arch))
             day_1_metric, month_1_metric = self._get_estimates(str(arch))
             avg_day_1_metric = sum(day_1_metric) / len(day_1_metric)
             avg_month_1_metric = sum(month_1_metric) / len(month_1_metric)
