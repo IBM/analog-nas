@@ -15,13 +15,11 @@ from analogainas.search_spaces.dataloaders.autoencoder_structured_dataset import
 import torch
 
 
-from new_search_sample import evaluator
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465),
                          (0.2023, 0.1994, 0.2010))
 ])
-
 
 train_cifar_dataset = AutoEncoderStructuredDataset(
     torchvision.datasets.CIFAR10(root='./data', train=True, transform=transform, download=True)
@@ -48,14 +46,14 @@ autoencoder.to(device)
 autoencoder.train()
 
 for epoch in range(epochs):
-    for batch_idx, (images, _) in enumerate(dataloader):
+    for batch_idx, (images, _) in enumerate(train_dataloader):
         images = images.to(device)
-        recon = sample_autoencoder(images)
+        recon = autoencoder(images)
         loss = criterion(recon, images)
 
-        optimizer.zero_grad()
+        optim.zero_grad()
         loss.backward()
-        optimizer.step()
+        optim.step()
 
         if batch_idx % 50 == 0:
             print(f"Epoch [{epoch+1}/{epochs}], Step [{batch_idx}], Loss: {loss.item()}")
@@ -64,12 +62,6 @@ autoencoder = autoencoder.to(torch.device('cpu'))
 
 CS = RPUConfigSpace()
 print(CS.get_hyperparameters())
-
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465),
-                         (0.2023, 0.1994, 0.2010))
-])
 
 evaluator = RealtimeRPUEvaluator(model=autoencoder, metric_callback=negative_mse_metric, test_dataloader=test_dataloader, criterion=criterion, artifact_dir='CifarAutoEncoderTraining')
 
