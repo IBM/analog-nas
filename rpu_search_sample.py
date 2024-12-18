@@ -40,7 +40,7 @@ autoencoder = CifarAutoEncoder(optimal_config)
 criterion = nn.MSELoss()
 optim = torch.optim.Adam(autoencoder.parameters(), lr=0.001)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-epochs = 2
+epochs = 8
 
 autoencoder.to(device)
 autoencoder.train()
@@ -58,6 +58,7 @@ for epoch in range(epochs):
         if batch_idx % 50 == 0:
             print(f"Epoch [{epoch+1}/{epochs}], Step [{batch_idx}], Loss: {loss.item()}")
 
+autoencoder.eval()
 autoencoder = autoencoder.to(torch.device('cpu'))
 
 CS = RPUConfigSpace()

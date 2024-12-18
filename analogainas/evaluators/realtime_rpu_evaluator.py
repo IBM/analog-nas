@@ -37,6 +37,7 @@ class RealtimeRPUEvaluator():
     def _get_estimates(self, rpu_architecture, max_batches= 3):
         # Need to swap with metric agnostic version
         model = self.model
+        model.eval()
 
         g_max = rpu_architecture['g_max']
         tile_size = rpu_architecture['tile_size']
@@ -48,6 +49,7 @@ class RealtimeRPUEvaluator():
 
         analog_model = model.to(self.analog_inference_device)
         rpu_config = create_rpu_config(g_max=g_max, tile_size=tile_size, dac_res=dac_res, adc_res=ada_res)
+        analog_model.eval()
 
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=rpu_config)
 
@@ -60,6 +62,7 @@ class RealtimeRPUEvaluator():
             metrics = self.metric_callback(self.test_dataloader, analog_model, max_batches)
             day_1_metrics.extend(metrics)
 
+        analog_model.eval()
         analog_model.drift_analog_weights(ONE_MONTH)
 
         analog_model.eval()
