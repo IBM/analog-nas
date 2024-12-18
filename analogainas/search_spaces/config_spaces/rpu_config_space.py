@@ -21,6 +21,6 @@ class RPUConfigSpace(BaseConfigSpace):
 
     def set_hyperparameters(self):
         self.add_hyperparameter_range("g_max", "discrete", [1, 2, 4, 8, 16, 32, 64, 128, 256, 512])
-        self.add_hyperparameter_range("tile_size", "discrete", [32, 64, 128, 256, 512, 1024, 2048])
+        self.add_hyperparameter_range("tile_size", "discrete", [64, 128, 256, 512, 1024, 2048])
         self.add_hyperparameter_range("dac_resolution", "discrete", [32, 64, 128, 256, 512, 1024, 2048])
         self.add_hyperparameter_range("adc_resolution", "discrete", [32, 64, 128, 256, 512, 1024, 2048])
