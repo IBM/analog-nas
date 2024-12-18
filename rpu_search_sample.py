@@ -40,7 +40,7 @@ autoencoder = CifarAutoEncoder(optimal_config)
 criterion = nn.MSELoss()
 optim = torch.optim.Adam(autoencoder.parameters(), lr=0.001)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-epochs = 8
+epochs = 1
 
 autoencoder.to(device)
 autoencoder.train()
