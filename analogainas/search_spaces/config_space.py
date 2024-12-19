@@ -89,7 +89,7 @@ class ConfigSpace:
         return archs
 
     def set_hyperparameters(self):
-        if self.search_space == "resnet-like" and self.dataset == "CIFAR-10":
+        if (self.search_space in ["resnet-like", "resnet_like"]) and self.dataset == "CIFAR-10":
             self.add_hyperparameter_range("out_channel0", "discrete", range=[8, 12, 16, 32, 48, 64])
             self.add_hyperparameter("M", "discrete", min_value=1, max_value=5)
             self.add_hyperparameter("R1", "discrete", min_value=1, max_value=32)
