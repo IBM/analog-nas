@@ -67,7 +67,6 @@ print(CS.get_hyperparameters())
 evaluator = RealtimeRPUEvaluator(model=autoencoder, metric_callback=negative_mse_metric, test_dataloader=test_dataloader, criterion=criterion, artifact_dir='CifarAutoEncoderTraining')
 
 optimizer = EAOptimizer(evaluator, population_size=200, nb_iter=30, batched_evaluation=True)
-#optimizer = EAOptimizer(evaluator, population_size=20, nb_iter=10, batched_evaluation=True)
 
 NB_RUN = 1
 worker = Worker(network_factory=CifarAutoEncoder, cs=CS, optimizer=optimizer, runs=NB_RUN)
