@@ -1,4 +1,5 @@
 """Hyperparameter Configuration Space."""
+
 import numpy as np
 import random
 
@@ -7,11 +8,12 @@ class Hyperparameter:
     """
     Class defines a hyperparameter and its range.
     """
+
     def __init__(self, name, type, range=None, min_value=0, max_value=0, step=1):
         self.name = name
         self.min_value = min_value
         self.max_value = max_value
-        self.step = step 
+        self.step = step
         self.range = range
         if self.range is not None:
             self.sampling = "range"
@@ -40,14 +42,14 @@ class Hyperparameter:
         )
 
 
-
 class ConfigSpace:
     """
     This class defines the search space.
     """
-    def __init__(self, dataset="CIFAR-10"):
+
+    def __init__(self, search_space="resnet-like", dataset="CIFAR-10"):
         self.dataset = dataset  # VWW, KWS
-        self.search_space = "resnet-like"  # for now only resnet-like
+        self.search_space = search_space  # for now only resnet-like
         self.hyperparameters = []  # list of Hyperparameters to search for
         self.set_hyperparameters()
 
@@ -56,11 +58,7 @@ class ConfigSpace:
             if h.name == name:
                 raise Exception("Name should be unique!")
 
-        hyp = Hyperparameter(name,
-                             type,
-                             min_value=min_value,
-                             max_value=max_value, 
-                             step=step)
+        hyp = Hyperparameter(name, type, min_value=min_value, max_value=max_value, step=step)
         self.hyperparameters.append(hyp)
 
     def add_hyperparameter_range(self, name, type, range):
@@ -91,26 +89,54 @@ class ConfigSpace:
         return archs
 
     def set_hyperparameters(self):
-        if self.search_space == "resnet-like":
-            self.add_hyperparameter_range("out_channel0",
-                                          "discrete",
-                                          range=[8, 12, 16, 32, 48, 64])
+        if (self.search_space in ["resnet-like", "resnet_like"]) and self.dataset == "CIFAR-10":
+            self.add_hyperparameter_range("out_channel0", "discrete", range=[8, 12, 16, 32, 48, 64])
             self.add_hyperparameter("M", "discrete", min_value=1, max_value=5)
+            self.add_hyperparameter("R1", "discrete", min_value=1, max_value=32)
+            self.add_hyperparameter("R2", "discrete", min_value=0, max_value=32)
+            self.add_hyperparameter("R3", "discrete", min_value=0, max_value=32)
+            self.add_hyperparameter("R4", "discrete", min_value=0, max_value=32)
+            self.add_hyperparameter("R5", "discrete", min_value=0, max_value=32)
+
+            for i in range(1, 6):
+                self.add_hyperparameter_range("convblock%d" % i, "discrete", range=[1, 2])
+                self.add_hyperparameter("widenfact%d" % i, "continuous", min_value=0.5, max_value=0.8)
+                self.add_hyperparameter("B%d" % i, "discrete", min_value=1, max_value=5)
+        # added config search space for autoencoder-like
+        elif self.search_space == "resnet-like" and self.dataset == "ImageNet":
+            # NOTE - the algorithm seems to want to explode the size of the imagenet resnet if we allow the widening factor to get too large
+            self.add_hyperparameter_range("out_channel0", "discrete", range=[32, 64, 96, 128, 192, 256])
+            # sets the number of groups 
+            # from talk narrow but deeper is better so heurstically maybe better to have more groups with less width? 
+            self.add_hyperparameter("M", "discrete", min_value=2, max_value=5)
+
+            # we want more potential blocks per group, since imagenet is a much bigger dataset and may require larger archs
             self.add_hyperparameter("R1", "discrete", min_value=1, max_value=16)
             self.add_hyperparameter("R2", "discrete", min_value=0, max_value=16)
             self.add_hyperparameter("R3", "discrete", min_value=0, max_value=16)
             self.add_hyperparameter("R4", "discrete", min_value=0, max_value=16)
             self.add_hyperparameter("R5", "discrete", min_value=0, max_value=16)
 
-            for i in range(1, 6):
-                self.add_hyperparameter_range("convblock%d" % i,
-                                              "discrete",
-                                              range=[1, 2])
-                self.add_hyperparameter("widenfact%d" % i,
-                                        "continuous",
-                                        min_value=0.5,
-                                        max_value=0.8)
-                self.add_hyperparameter("B%d" % i, "discrete", min_value=1, max_value=5)
+            # kep convblocks the same for now for testing
+            self.add_hyperparameter_range("convblock1", "discrete", range=[1, 2])
+            self.add_hyperparameter_range("convblock2", "discrete", range=[1, 2])
+            self.add_hyperparameter_range("convblock3", "discrete", range=[1, 2])
+            self.add_hyperparameter_range("convblock4", "discrete", range=[1, 2])
+            self.add_hyperparameter_range("convblock5", "discrete", range=[1, 2])
+
+            # Widening factors: slightly broader range for increased flexibility
+            self.add_hyperparameter("widenfact1", "continuous", min_value=0.5, max_value=0.8)
+            self.add_hyperparameter("widenfact2", "continuous", min_value=0.5, max_value=0.8)
+            self.add_hyperparameter("widenfact3", "continuous", min_value=0.5, max_value=0.8)
+            self.add_hyperparameter("widenfact4", "continuous", min_value=0.5, max_value=0.8)
+            self.add_hyperparameter("widenfact5", "continuous", min_value=0.5, max_value=0.8)
+
+            # Branches per group: allow a slightly wider range for complexity
+            self.add_hyperparameter("B1", "discrete", min_value=1, max_value=8)
+            self.add_hyperparameter("B2", "discrete", min_value=1, max_value=8)
+            self.add_hyperparameter("B3", "discrete", min_value=1, max_value=8)
+            self.add_hyperparameter("B4", "discrete", min_value=1, max_value=8)
+            self.add_hyperparameter("B5", "discrete", min_value=1, max_value=8)
 
     def remove_hyperparameter(self, name):
         for i, h in enumerate(self.hyperparameters):
@@ -138,7 +164,8 @@ class ConfigSpace:
         for i, h in enumerate(self.hyperparameters):
             str_ += "{})\n".format(i) + str(h) + "\n\n"
         str_ += "------------------------------------------------\n"
-        return str_ 
+        return str_
+
 
 def main():
     CS = ConfigSpace("Cifar-10")

@@ -38,8 +38,10 @@ class EAOptimizer:
                 mutation_prob_width=0.8,
                 mutation_prob_depth=0.8, 
                 mutation_prob_other=0.6,
+                generic_mutation_prob=0.5,
                 max_nb_param=1,
-                T_AVM =10):
+                T_AVM =10,
+                batched_evaluation=False):
         
         assert population_size > 10, f"Population size needs to be at least 10, got {population_size}"
 
@@ -49,8 +51,10 @@ class EAOptimizer:
         self.mutation_prob_width = mutation_prob_width
         self.mutation_prob_depth = mutation_prob_depth
         self.mutation_prob_other = mutation_prob_other
+        self.generic_mutation_prob = generic_mutation_prob
         self.max_nb_param = max_nb_param
         self.T_AVM = T_AVM
+        self.batched_evaluation = batched_evaluation
     
     def mutate(self, cs, architecture):
         r = random.random() 
@@ -78,6 +82,13 @@ class EAOptimizer:
             architecture = cs.sample_arch_uniformly(1)
         return architecture
 
+    def generic_mutate(self, cs, architecture, generic_mutation_prob=0.5):
+        new_architecture = cs.sample_arch_uniformly(1)[0]
+        for hyperparameter in architecture:
+            if random.random() < 0.5:
+                new_architecture[hyperparameter] = architecture[hyperparameter]
+        return new_architecture
+
     def generate_initial_population(self, cs):
         P = [cs.sample_arch_uniformly(1)] * self.population_size
         print(len(P))
@@ -97,25 +108,76 @@ class EAOptimizer:
         return True
 
     def run(self, cs):
-        P = self.generate_initial_population(cs)
-        best_f = 0.0
-        best_x = [None]*self.population_size
+        if not self.batched_evaluation:
+            P = self.generate_initial_population(cs)
+            best_f = 0.0
+            best_x = [None]*self.population_size
 
-        for i in range(self.nb_iter):
-            best_accs =[]
-            new_P = []
-            for a in P:
-                new_a = self.mutate(cs, a)
-                new_P.append(new_a)
-                acc, _ = self.surrogate.query(new_a)
-                best_accs.append(acc)
-            new_f = max(best_accs)
-            if new_f > best_f:
-                best_f = new_f
-                best_x = new_a[0]
-            
-            P = new_P
+            for i in range(self.nb_iter):
+                best_accs =[]
+                new_P = []
+                for a in P:
+                    new_a = self.mutate(cs, a)
+                    new_P.append(new_a)
+                    acc, _ = self.surrogate.query(new_a)
+                    best_accs.append(acc)
+                new_f = max(best_accs)
+                if new_f > best_f:
+                    best_f = new_f
+                    best_x = new_a[0]
 
-            print("ITERATION {} completed: best acc {}".format(i, best_f))
+                P = new_P
 
-        return best_x, best_f
+                print("ITERATION {} completed: best acc {}".format(i, best_f))
+
+            return best_x, best_f
+
+        else:
+            P = cs.sample_arch_uniformly(self.population_size)
+            # set best_f to lowest float
+            best_f = -1 * float('inf')
+            best_x = [None]*self.population_size
+
+            for i in range(self.nb_iter):
+                best_accs =[]
+                new_P = []
+                # mutate population by ranking
+                j = 0
+                for a in P:
+                    j += 1
+                    mutation_rate = self.generic_mutation_prob/self.population_size * j
+
+                    new_a = self.generic_mutate(cs, a, mutation_rate)
+                    new_P.append(new_a)
+                accs, _ = self.surrogate.query_pop([[el] for el in new_P], should_bypass_eval=True, bypass_threshold=best_f)
+                print(f"Accs: {accs}")
+
+                print(accs)
+                # rank architectures by accuracy
+                sorted_accs = sorted(accs, reverse=True)
+                sorted_new_P = [new_P[accs.index(acc)] for acc in sorted_accs]
+
+                accs = list(sorted_accs)
+                new_P = list(sorted_new_P)
+
+                print(f"Sorted accs: {accs}, new_P: {new_P}")
+                # Update best architecture if it beats the current best
+                if accs[0] > best_f:
+                    best_f = accs[0]
+                    best_x = new_P[0]
+
+                print(f"Best f: {best_f}, best_x: {best_x}")
+                print("Best architecture: ", best_x)
+                # duplicate the best and move everything down
+                new_P.insert(0, new_P[0])
+                # remove the last element
+                new_P = new_P[:-1]
+                print(f"New P After Update: {new_P}")
+
+                P = new_P
+
+                # Show results
+                print("ITERATION {} completed: best acc {}".format(i, best_f))
+
+            return best_x, best_f
+

@@ -12,6 +12,164 @@
 | [**Docs**](https://github.com/IBM/analog-nas/blob/main/starter_notebook.ipynb)
 | [**References**](#references)
 
+## Additions for HPML Class
+Our project focused on creating an AutoEncoder architecture that can be optimized for Analog Hardware. 
+We created a search space for AutoEncoder architectures and another for RPU-configurations that can be used to run AutoEncoder architectures.
+As part of the project, we also created new evaluators that can be used to evaluate the performance of the AutoEncoder architectures.
+
+We used the existing infrastructure of this repo and made some key contributions to it to extend the functionality for this project.
+
+The majority of the code relevant to this project can be found within the analagainas main folder. Within that main folder, there are the following subfolders:
+
+* **search_spaces**: Contains a further subfolder that contains the AutoEncoder implementation details along with the associated configuration space for the AutoEncoder. Also contains new additions to the dataloader subfolder by the team.
+* **evaluators**: Contains the new and existing evaluators that are used to evaluate the performance of the models. The new ones added by the team are the RealtimeRpuEvaluator and the RealtimeTrainingEvaluator.
+* **search_algorithms**: Contains the search algorithms that are used to search for the optimal architecture. Contains separate py files for the various approaches. In particular, contains EAOptimized.py which is the main search algorithm used for the AutoEncoder.
+
+Here is a more specific look at the additions made to the repo:
+
+
+- RealtimeTrainingEvaluator
+    - Architecture-batchable evaluator class that integrates with the existing AnalogNAS optimizer search framework through query and query\_pop implementations. Allows for multiple architectures to be training on several GPUs simultaneously on multiple threads. Implemented to be model and dataset-agnostic. The outputs of this class could be used in the future to train estimators for arbitrary models.
+
+- BaseConfigSpace
+    - Introduced Object Oriented update to ConfigSpaces. Made it easily extensive to add future ConfigSpaces without having to update a single catch-all class.
+
+- AutoEncoderConfigSpace
+    - Configuration Space for the AutoEncoder architecture that was defined in Methodology.
+
+- AutoEncoder
+    - Config-driven AutoEncoder implementation that accepts parameters as defined by the corresponding ConfigSpace. Used construction-based approach to create the CIFAR and MNIST task-specific configurable AutoEncoders.
+
+- RPUConfigSpace
+    - Configuration Space for the RPU Architectures. 
+
+- Search Entrypoints
+    - Introduced several training entrypoints to enable the recreation of various search experiments. These include, AutoEncoder Search Demo, Cifar AutoEncoder Train Demo, and RPU Search Demo. These can launch various searches over different datasets/architectures.
+
+- Jupyter Notebooks
+    - Several Jupyter notebooks were created to analyze/retrain discovered architecture and generate experiment results.
+
+Much like the original implemenation, you can run the searches by running the following commands:
+
+* python nas_search_demo.py
+* python autoencoder_search_demo.py
+* python rpu_search_demo.py
+* python cifar_autoencoder_train.py
+
+Here is a sample snippet:
+
+```python
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+import torch.nn as nn
+
+from analogainas.search_spaces.autoencoder.cifar_autoencoder import CifarAutoEncoder
+from analogainas.search_spaces.autoencoder.autoencoder_config_space import AutoEncoderConfigSpace
+from analogainas.evaluators.realtime_training_evaluator import RealtimeTrainingEvaluator
+from analogainas.search_algorithms.ea_optimized import EAOptimizer
+from analogainas.search_algorithms.worker import Worker
+from analogainas.search_spaces.dataloaders.autoencoder_structured_dataset import AutoEncoderStructuredDataset
+
+
+
+CS = AutoEncoderConfigSpace()
+
+print(CS.get_hyperparameters())
+
+print(CS.compute_cs_size())
+
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465),
+                         (0.2023, 0.1994, 0.2010))
+])
+
+train_cifar_dataset = AutoEncoderStructuredDataset(
+    torchvision.datasets.CIFAR10(root='./data', train=True, transform=transform, download=True)
+)
+
+train_dataloader = DataLoader(train_cifar_dataset, batch_size=8, shuffle=True)
+
+test_cifar_dataset = AutoEncoderStructuredDataset(
+    torchvision.datasets.CIFAR10(root='./data', train=False, transform=transform, download=True)
+)
+
+test_dataloader = DataLoader(test_cifar_dataset, batch_size=64, shuffle=True)
+
+criterion = nn.MSELoss()
+evaluator = RealtimeTrainingEvaluator(model_factory=CifarAutoEncoder, train_dataloader=train_dataloader, val_dataloader=test_dataloader, test_dataloader=test_dataloader, criterion=criterion, epochs=13, artifact_dir='CifarAutoEncoderTraining')
+
+optimizer = EAOptimizer(evaluator, population_size=50, nb_iter=10, batched_evaluation=True)
+
+NB_RUN = 1
+worker = Worker(network_factory=CifarAutoEncoder, cs=CS, optimizer=optimizer, runs=NB_RUN)
+
+print(worker.config_space)
+worker.search()
+``` 
+
+Sample results:
+
+Virtually all of the models were able to fit the MNIST dataset in the digital prediction space.
+
+<img src="images/sample_convergence_mnist.png" width="600">
+
+However, for the vast majority of models, once even a little RPU drift noise was added, the models lost all predictive power.
+
+
+Results after one day of drift noise on non-optimal model:
+
+<img src="images/non-optimal-one-day-mnist.png" width="600">
+
+Results after one month of drift noise on non-optimal model:
+
+<img src="images/non-optimal-one-month.png" width="600">
+
+However, after we conducted the search, we were able to find an architecture that is resilient to the drift noise.
+
+Results after one day of drift noise on optimal model:
+
+<img src="images/mnist-one-day-optimized.png" width="600">
+
+
+Results after one month of drift noise on optimal model:
+
+<img src="images/mnist-one-month-optimized.png" width="600">
+
+Clearly the evolved architecture is much preferred in this case.
+
+This was attempted again with Cifar10. 
+
+Here are the results for the non-optimal model:
+
+One day
+
+<img src="images/non-optimal-cifar-day.png" width="600">
+
+One month
+
+<img src="images/non-optimal-cifar-month.png" width="600">
+
+And here are the results for the optimal model:
+
+One day
+
+<img src="images/cifar-optimal-one-day.png" width="600">
+
+One month
+
+<img src="images/cifar-one-month-optimal.png" width="600">
+
+It should be added that even these "non-optimal" models are still better than the average, randomly selected model from the configuration space. 
+Many of the models are completely illegible after adding noise.
+
+The optimal models are able to maintain a high level of clarity even after a month of drift noise.
+
+Lastly, with the optimized model, we conducted an RPU search for the optimal RPU config and achieved the following results:
+
+![cifar_model_performance.png](images%2Fcifar_model_performance.png)
+
 ## Features 
 AnalogaiNAS package offers the following features: 
 
