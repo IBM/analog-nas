@@ -16,7 +16,7 @@ from analogainas.search_algorithms.ea_optimized import EAOptimizer
 from analogainas.search_algorithms.worker import Worker
 from analogainas.search_spaces.dataloaders.autoencoder_structured_dataset import AutoEncoderStructuredDataset
 
-from analogainas.analog_helpers.analog_helpers import create_rpu_config, create_analog_optimizer
+from analogainas.analog_helpers.analog_helpers import create_rpu_config
 from aihwkit.simulator.configs import InferenceRPUConfig
 from aihwkit.simulator.configs.utils import WeightClipType
 from aihwkit.simulator.configs.utils import BoundManagementType

@@ -6,7 +6,7 @@ import torch
 from cachetools import LRUCache
 
 
-from analogainas.analog_helpers.analog_helpers import create_rpu_config, create_analog_optimizer
+from analogainas.analog_helpers.analog_helpers import create_rpu_config
 from aihwkit.simulator.configs import InferenceRPUConfig
 from aihwkit.simulator.configs.utils import WeightClipType
 from aihwkit.simulator.configs.utils import BoundManagementType
