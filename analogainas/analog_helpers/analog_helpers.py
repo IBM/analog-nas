@@ -1,33 +1,18 @@
 # TORCH IMPORTS
-import torch
-import torch.nn as nn
-import torch.optim as optim
-import torch.backends.cudnn as cudnn
-from torch.optim.lr_scheduler import CosineAnnealingLR
-
 # AIHWKIT IMPORTS
 from aihwkit.simulator.configs import InferenceRPUConfig
 from aihwkit.simulator.configs.utils import WeightClipType
-from aihwkit.simulator.configs.utils import BoundManagementType
 from aihwkit.simulator.presets.utils import PresetIOParameters
-from aihwkit.inference.noise.pcm import PCMLikeNoiseModel
 from aihwkit.inference.compensation.drift import GlobalDriftCompensation
-from aihwkit.nn.conversion import convert_to_analog_mapped
-from aihwkit.nn import AnalogSequential
 from aihwkit.optim import AnalogSGD
-from aihwkit.nn import AnalogLinear
-from aihwkit.simulator.rpu_base import cuda
-from aihwkit.inference.converter.conductance import SinglePairConductanceConverter
+
 from aihwkit.inference.noise.pcm import PCMLikeNoiseModel
 from aihwkit.simulator.parameters.enums import BoundManagementType
-from aihwkit.simulator.parameters.io import IOParameters
-from aihwkit.simulator.configs import TorchInferenceRPUConfig
 
-
-from analogainas.search_spaces.resnet_macro_architecture import Network
-from analogainas.search_spaces.dataloaders.dataloader import load_cifar10
 
 def create_noise_model():
+    # Returns a noise model for the inference.
+    # Would have preferred to use CustomDriftPCMLikeNoiseModel but it is not available in the current environment supported in this repo.
     # g_min, g_max = 0.0, 25.
     # custom_drift_model = dict(g_lst=[g_min, 10., g_max],
     #                           nu_mean_lst=[0.08, 0.05, 0.03],
@@ -48,6 +33,8 @@ def create_rpu_config(g_max=25,
                       dac_res=256,
                       adc_res=256,
                       noise_std=5.0):
+    # Returns an RPU configuration for the inference based on the given parameters.
+    # Implementation from AIHWKit
     rpu_config = InferenceRPUConfig()
 
     rpu_config.clip.type = WeightClipType.FIXED_VALUE
@@ -76,10 +63,3 @@ def create_rpu_config(g_max=25,
     # drift compensation
     rpu_config.drift_compensation = GlobalDriftCompensation()
     return rpu_config
-
-
-def create_analog_optimizer(model, lr):
-    optimizer = AnalogSGD(model.parameters(), lr=lr)
-    optimizer.regroup_param_groups(model)
-
-    return optimizer

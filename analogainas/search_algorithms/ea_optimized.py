@@ -161,6 +161,7 @@ class EAOptimizer:
                 new_P = list(sorted_new_P)
 
                 print(f"Sorted accs: {accs}, new_P: {new_P}")
+                # Update best architecture if it beats the current best
                 if accs[0] > best_f:
                     best_f = accs[0]
                     best_x = new_P[0]
@@ -175,6 +176,7 @@ class EAOptimizer:
 
                 P = new_P
 
+                # Show results
                 print("ITERATION {} completed: best acc {}".format(i, best_f))
 
             return best_x, best_f

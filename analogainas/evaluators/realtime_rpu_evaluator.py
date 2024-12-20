@@ -39,6 +39,7 @@ class RealtimeRPUEvaluator():
         model = self.model
         model.eval()
 
+        # Parse the architecture to generate the RPU config.
         g_max = rpu_architecture['g_max']
         tile_size = rpu_architecture['tile_size']
         dac_res = rpu_architecture['dac_resolution']
@@ -51,24 +52,31 @@ class RealtimeRPUEvaluator():
         rpu_config = create_rpu_config(g_max=g_max, tile_size=tile_size, dac_res=dac_res, adc_res=ada_res)
         analog_model.eval()
 
+        # Convert the model we are optimizing for to an analog model
+        # Using the RPU configuration we have generated
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=rpu_config)
 
+        # Apply one day of drift to the analog model
         analog_model.drift_analog_weights(ONE_DAY)
 
         analog_model.eval()
         day_1_metrics = []
 
         with torch.no_grad():
+            # Metric agnostic callback to evaluate the performance of the model
             metrics = self.metric_callback(self.test_dataloader, analog_model, max_batches)
             day_1_metrics.extend(metrics)
 
         analog_model.eval()
+
+        # Apply one month of drift to the analog model
         analog_model.drift_analog_weights(ONE_MONTH)
 
         analog_model.eval()
         month_1_metrics = []
 
         with torch.no_grad():
+            # Metric agnostic callback to evaluate the performance of the model
             metrics = self.metric_callback(self.test_dataloader, analog_model, max_batches)
             month_1_metrics.extend(metrics)
 
@@ -98,6 +106,8 @@ class RealtimeRPUEvaluator():
 
 
     def query_pop(self, architecture_list, should_bypass_eval=False, bypass_threshold=0.0):
+        # Batched mechanism to judge multiple RPU architecture performance
+
         architectures = [a[0] for a in architecture_list]
         for arch in architectures:
             self._arch_string_to_dict[str(arch)] = arch
@@ -105,10 +115,11 @@ class RealtimeRPUEvaluator():
         day_1_metrics = []
         month_1_metrics = []
 
-
         print("Getting estimates")
 
         for arch in architectures:
+            # Get estimates for each architecture
+
             day_1_metric, month_1_metric = self._get_estimates(arch)
             avg_day_1_metric = sum(day_1_metric) / len(day_1_metric)
             avg_month_1_metric = sum(month_1_metric) / len(month_1_metric)

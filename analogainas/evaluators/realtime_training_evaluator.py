@@ -60,21 +60,28 @@ class RealtimeTrainingEvaluator():
         self._global_iteration = 0
 
     def _train_model_thread(self, architecture_string, device_id):
+        # Threaded function to train a model with a given architecture on a given device
+        # Trains all models with the same parameters on all devices
+
+        # Sets-up separate tensorboard log for each gpu
         gpu_path = self._tb_log_dir + f'/gpu:{device_id}'
         os.makedirs(gpu_path, exist_ok=True)
         gpu_writer = SummaryWriter(log_dir=gpu_path)
 
+        # Use appropriate device
         device = torch.device("cuda:" + str(device_id) if torch.cuda.is_available() else "cpu")
         architecture = self._arch_string_to_dict[str(architecture_string)]
 
         model = self.model_factory(architecture)
         model = model.to(device)
 
+        # Setup some tracking values
         model = model.to(device)
         training_losses = []
         validation_losses = []
         patience_counter = 0
 
+        # Prepare for training
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr)
         step_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=4, gamma=0.1)
 
@@ -122,6 +129,7 @@ class RealtimeTrainingEvaluator():
             with self.thread_lock:
                 gpu_writer.add_scalar(f'{self._global_iteration}/validation_loss', validation_losses[-1], epoch)
 
+            # Early stopping using patience
             if epoch > 0 and validation_losses[-2] - validation_losses[-1] < self.patience_threshold:
                 patience_counter += 1
             if patience_counter >= self.patience:
@@ -140,8 +148,11 @@ class RealtimeTrainingEvaluator():
         # Train each batch of architectures on all gpus
         for batch in batches:
             print(f"Starting new batch with {len(batch)} architectures")
+
+            # Also attempted with py Pool
             # with Pool(num_gpus) as p:
             #     p.starmap(self._train_model_thread, [(arch, self.gpu_ids[i]) for i, arch in enumerate(batch)])
+
             threads = []
             for i, arch in enumerate(batch):
                 t = threading.Thread(target=self._train_model_thread, args=(str(arch), self.gpu_ids[i]))
@@ -166,6 +177,9 @@ class RealtimeTrainingEvaluator():
 
     def _get_estimates(self, architecture, max_batches= 3):
         # Need to swap with metric agnostic version
+        # This can be made more efficient with parallelization
+
+        # Grab architecture
         architecture = self._arch_string_to_dict[str(architecture)]
         model = self._model_arch_to_trained_model[str(architecture)]
 
@@ -173,8 +187,11 @@ class RealtimeTrainingEvaluator():
             return self._model_arch_to_day_1_losses[str(architecture)], self._model_arch_to_month_1_losses[str(architecture)]
 
         analog_model = model.to(self.analog_inference_device)
+
+        # Convert to analog model
         analog_model = convert_to_analog_mapped(analog_model, rpu_config=create_rpu_config())
 
+        # Add the One Day drift
         analog_model.drift_analog_weights(ONE_DAY)
 
         analog_model.eval()
@@ -192,6 +209,7 @@ class RealtimeTrainingEvaluator():
 
             print(f"Day 1 losses: {day_1_losses}")
 
+        # Add the One Month drift
         analog_model.drift_analog_weights(ONE_MONTH)
 
         analog_model.eval()
@@ -235,6 +253,9 @@ class RealtimeTrainingEvaluator():
 
 
     def query_pop(self, architecture_list, should_bypass_eval=False, bypass_threshold=0.0):
+        # This is a batched version of the query function
+        # It can be used to evaluate multiple architectures at once
+
         architectures = [a[0] for a in architecture_list]
         for arch in architectures:
             self._arch_string_to_dict[str(arch)] = arch
