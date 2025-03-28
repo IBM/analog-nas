@@ -104,7 +104,7 @@ class AnalogNASBench:
             'noisy_drift_60', 'noisy_drift_3600', 
             'noisy_drift_86400', 'noisy_drift_2592000', 
             'analog_drift_60', 'analog_drift_3600', 
-            'analog_drift_86400', 'analog_drift_2592000'
+            'analog_drift_86400', 'analog_drift_2592000', "params"
         ]
         
     def query_metric(self, architecture, metric):
