@@ -21,9 +21,19 @@ This benchmark enables researchers to explore how different neural architectures
 - **Ongoing Expansion:** Currently supports CIFAR-10, with CIFAR-100 and ImageNet16-120 integration in progress.
 
 ## Installation
+- Clone the AnalogNAS repository
 ```bash
-pip install analog-nasbench
+git clone https://github.com/IBM/analog-nas.git
 ```
+- Move to analognasbench folder
+```bash
+cd analognasbench
+```
+- Run the setup script
+```bash
+pip install .
+```
+
 
 ## Usage
 ### Initialize Benchmark
