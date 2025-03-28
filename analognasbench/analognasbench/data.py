@@ -8,9 +8,10 @@ from ast import literal_eval
 class Architecture:
     def __init__(self, architecture, baseline_accuracy,
                  ptq_accuracy, qat_accuracy, 
-                 noisy_accuracy, analog_accuracy, baseline_drift_60,
-                 baseline_drift_3600,baseline_drift_86400,baseline_drift_2592000,
-                 analog_drift_60,analog_drift_3600,analog_drift_86400,analog_drift_2592000
+                 noisy_accuracy, analog_accuracy, 
+                 noisy_drift_60,noisy_drift_3600,noisy_drift_86400,noisy_drift_2592000,
+                 analog_drift_60,analog_drift_3600,analog_drift_86400,analog_drift_2592000,
+                 params, 
                  ):
         
         self.architecture = architecture  # Tuple (e.g., (0,0,0,4,3,2))
@@ -22,10 +23,12 @@ class Architecture:
         self.noisy_accuracy = noisy_accuracy
         self.analog_accuracy = analog_accuracy
 
-        self.baseline_drift_60 = self._parse_drift(baseline_drift_60)
-        self.baseline_drift_3600 = self._parse_drift(baseline_drift_3600)
-        self.baseline_drift_86400 = self._parse_drift(baseline_drift_86400)
-        self.baseline_drift_2592000 = self._parse_drift(baseline_drift_2592000)
+        self.params = params
+
+        self.noisy_drift_60 = self._parse_drift(noisy_drift_60)
+        self.noisy_drift_3600 = self._parse_drift(noisy_drift_3600)
+        self.noisy_drift_86400 = self._parse_drift(noisy_drift_86400)
+        self.noisy_drift_2592000 = self._parse_drift(noisy_drift_2592000)
         self.analog_drift_60 = self._parse_drift(analog_drift_60)
         self.analog_drift_3600 = self._parse_drift(analog_drift_3600)
         self.analog_drift_86400 = self._parse_drift(analog_drift_86400)
@@ -98,8 +101,8 @@ class AnalogNASBench:
         self.metrics = [
             'architecture', 'baseline_accuracy', 'ptq_accuracy', 
             'qat_accuracy', 'noisy_accuracy', 'analog_accuracy',
-            'baseline_drift_60', 'baseline_drift_3600', 
-            'baseline_drift_86400', 'baseline_drift_2592000', 
+            'noisy_drift_60', 'noisy_drift_3600', 
+            'noisy_drift_86400', 'noisy_drift_2592000', 
             'analog_drift_60', 'analog_drift_3600', 
             'analog_drift_86400', 'analog_drift_2592000'
         ]
@@ -114,6 +117,7 @@ class AnalogNASBench:
         """
         if metric not in self.metrics:
             raise ValueError(f"Metric {metric} not found. Available metrics: {self.metrics}")
+        
         
         arch = self.data.get(architecture)
         if not arch:
@@ -137,17 +141,18 @@ class AnalogNASBench:
 Architecture Details:
 --------------------
 Architecture: \t\t{arch.architecture}
+Number of parameters: \t{arch.params}
 Baseline Accuracy: \t{arch.baseline_accuracy}
 PTQ Accuracy: \t\t{arch.ptq_accuracy}
 QAT Accuracy: \t\t{arch.qat_accuracy}
 Noisy Accuracy: \t{arch.noisy_accuracy}
 Analog Accuracy: \t{arch.analog_accuracy}
 
-Baseline Drift:
-- 60s: \t\t{arch.baseline_drift_60}
-- 3600s: \t{arch.baseline_drift_3600}
-- 86400s: \t{arch.baseline_drift_86400}
-- 2592000s: \t{arch.baseline_drift_2592000}
+Noisy Drift:
+- 60s: \t\t{arch.noisy_drift_60}
+- 3600s: \t{arch.noisy_drift_3600}
+- 86400s: \t{arch.noisy_drift_86400}
+- 2592000s: \t{arch.noisy_drift_2592000}
 
 Analog Drift:
 - 60s: \t\t{arch.analog_drift_60}

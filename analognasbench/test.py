@@ -10,25 +10,28 @@ benchmark = AnalogNASBench()
 # qat_accuracy
 # noisy_accuracy
 # analog_accuracy
-# baseline_drift_60
+# noisy_drift_60
 # analog_drift_60
-# baseline_drift_3600
+# noisy_drift_3600
 # analog_drift_3600
-# baseline_drift_86400
+# noisy_drift_86400
 # analog_drift_86400
-# baseline_drift_2592000
+# noisy_drift_2592000
 # analog_drift_2592000
+# params
 
-baseline_drift_3600 = benchmark.query_metric((0, 0, 0, 4, 3, 2), 'baseline_drift_3600')
+noisy_drift_3600 = benchmark.query_metric((0, 0, 2, 0, 0, 0), 'noisy_drift_3600')
 
-print("baseline_drift_3600 :",baseline_drift_3600)
-print("baseline_drift_3600 value :",baseline_drift_3600.value)
-print("baseline_drift_3600 uncertainty :",baseline_drift_3600.uncertainty)
+print("noisy_drift_3600 :",noisy_drift_3600)
+print("noisy_drift_3600 value :",noisy_drift_3600.value)
+print("noisy_drift_3600 uncertainty :",noisy_drift_3600.uncertainty)
 
-analog_accuracy = benchmark.query_metric((0, 0, 0, 4, 3, 2), 'analog_accuracy')
+analog_accuracy = benchmark.query_metric((0, 0, 2, 0, 0, 0), 'analog_accuracy')
 
 print("analog_accuracy :",analog_accuracy)
 
 # # Get full architecture details
-arch_details = benchmark.get_architecture_details((0, 1, 0, 4, 3, 2))
+arch_details = benchmark.get_architecture_details((0, 0, 2, 0, 0, 0))
 print(arch_details)
+
+
