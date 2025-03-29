@@ -11,8 +11,8 @@ This benchmark enables researchers to explore how different neural architectures
 
 - **Diverse Training Conditions:**
     - **Baseline Evaluation**: Full training on standard hardware.
-    - **Noisy Evaluation**: Direct training on AIMC hardware.
-    - **Hardware-Aware Training (HWT)**: Fine-tuning trained models on AIMC hardware.
+    - **Noisy Evaluation**: Direct evaluation on AIMC hardware.
+    - **Hardware-Aware Training (HWT)**: Fine-tuning trained models on AIMC hardware with noise injection.
     - **Post-Training Quantization (PTQ)**: Quantizing pre-trained models on standard hardware.
     - **Quantization-Aware Training (QAT)**: Training with quantization awareness on standard hardware.
 
