@@ -1,0 +1,9 @@
+Model,ODiMo,LionHEART,MPAAS,MPS
+ResNet8,3.0,5.8,1.2,1.0
+ResNet20,3.8,6.1,2.0,1.6
+MobileNetV2-10,2.6,7.8,1.3,0.9
+ResNet18,4.2,9.5,2.4,2.0
+ResNet50,4.8,>16,2.8,2.2
+VIT-Adapter,NA,NA,2.6,2.4
+MobileBert,NA,15.5,3.2,2.9
+Bert-base,NA,13.0,3.9,3.3

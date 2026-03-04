@@ -1,0 +1,7 @@
+Configuration,ResNet20_CIFAR10_Accuracy_percent,ResNet50_COCO_mIoU_percent,MobileBert_SQuADv1_F1_percent
+MPS,81.9,52.3,83.4
+MPS-QAT,84.5,53.7,84.7
+MPS-QAT-HWA,87.3,54.3,85.2
+MPS-NSHWA,88.7,55.1,86.5
+MPS-QAT-NSHWA,90.8,56.4,89.3
+MPAAS,92.4,58.7,91.6

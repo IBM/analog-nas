@@ -1,0 +1,9 @@
+Model,Method,Task_Performance_percent,Analog_Tile_Util_percent,Analog_MAC_Ratio_percent,Parameters_M,Digital_Weight_Size_MB,Number_of_Analog_Tiles,Latency_ms_batch1,Energy_uJ_per_sample
+MobileBert_SQuADv1,Full_Digital_FP32,91.3,0,0,25.3,101.2±5.1,0,70.0,528.3±14.7
+MobileBert_SQuADv1,Full_Analog,89.5,58.5,96.9,NA,NA,50±2.5,28.0,145.3±5.6
+MobileBert_SQuADv1,MPAAS,92.1±0.3,68±2.7,63±2.0,26.1,10.4±1.2,56±2.5,35.0±1.6,167.8±5.3
+MobileBert_SQuADv1,MPS,90.8±0.2,65±3.0,60±2.3,NA,7.6±0.8,54±2.7,33.0±1.4,153.9±4.8
+BertBase_SQuADv1,Full_Digital_FP32,88.5,0,0,110,440±22,0,280.0,2100±80
+BertBase_SQuADv1,Full_Analog,86.7,64.2,98.5,NA,NA,59±3.0,110.0,580±25
+BertBase_SQuADv1,MPAAS,89.8±0.7,67±2.8,61±2.1,111.5,44.6±2.2,64±3.2,140.0±6.0,720±30
+BertBase_SQuADv1,MPS,87.9±0.8,62±1.2,59±2.4,NA,40.2±2.0,62±3.1,130.0±5.0,660±28
